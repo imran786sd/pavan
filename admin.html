@@ -3,230 +3,335 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clinic Admin Dashboard</title>
+  <title>Appointment - Dr. Pavan</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#1a73e8">
   <style>
-    body { font-family: system-ui, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    h1 { color: #2c3e50; text-align: center; }
+    body { font-family: system-ui, sans-serif; background: #eef2f9; margin: 0; padding: 0; padding-bottom: 80px; max-width: 500px; margin-left: auto; margin-right: auto; }
     
-    .tabs { display: flex; border-bottom: 2px solid #ecf0f1; margin-bottom: 20px; }
-    .tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; font-weight: bold; color: #7f8c8d; }
-    .active-tab { color: #1a73e8; border-bottom: 3px solid #1a73e8; }
+    /* App Bar */
+    .app-bar { background: white; padding: 20px 15px; display: flex; align-items: center; gap: 15px; font-weight: bold; font-size: 18px; color: #333; }
+    .back-btn { font-size: 20px; cursor: pointer; color: #555; }
     
-    .panel { display: none; }
-    .active-panel { display: block; }
+    /* Date Strip */
+    .date-header { background: white; padding: 10px 15px 0 15px; font-weight: bold; color: #333; }
+    .date-strip { display: flex; overflow-x: auto; background: white; padding: 15px; gap: 15px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; scrollbar-width: none; }
+    .date-strip::-webkit-scrollbar { display: none; }
+    .date-item { display: flex; flex-direction: column; align-items: center; padding: 10px 15px; border-radius: 12px; cursor: pointer; color: #777; transition: 0.3s; min-width: 30px; }
+    .date-item .day { font-size: 12px; margin-bottom: 5px; }
+    .date-item .num { font-size: 16px; font-weight: bold; }
+    .date-item.active { background: #1a73e8; color: white; box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
     
-    input, select { width: 100%; padding: 10px; margin: 10px 0 20px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    button { background: #1a73e8; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
-    button:hover { background: #1557b0; }
-    .btn-danger { background: #e74c3c; width: auto; padding: 8px 15px; font-size: 12px; }
-    .btn-danger:hover { background: #c0392b; }
+    /* Slots Section */
+    .section-title { font-size: 14px; font-weight: bold; margin: 20px 15px 10px 15px; text-align: left; color: #333; }
+    .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px; }
+    .slot { background: white; color: #333; border-radius: 8px; padding: 12px 5px; font-size: 12px; font-weight: bold; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; }
+    .slot.selected { background: #1a73e8; color: white; }
+    .slot.locked { opacity: 0.5; background: #e0e0e0; color: #777; cursor: not-allowed; box-shadow: none; }
+    .slot.my-booking { background: #27ae60; color: white; }
     
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-    th { background-color: #f8f9fa; color: #333; }
-    tr:nth-child(even) { background-color: #f9f9f9; }
-    .status-booked { color: #27ae60; font-weight: bold; }
-    .status-available { color: #7f8c8d; }
+    /* Bottom Bar */
+    .bottom-bar { position: fixed; bottom: 0; width: 100%; max-width: 500px; padding: 15px; background: white; box-sizing: border-box; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); border-top-left-radius: 20px; border-top-right-radius: 20px; display: none; }
+    .btn-confirm { background: #1a73e8; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
+    .btn-confirm:disabled { background: #ccc; cursor: not-allowed; }
+    
+    /* Login & Details Screens (Hidden in booking view) */
+    .screen { display: none; background: white; padding: 30px; border-radius: 15px; margin: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+    .active-screen { display: block; }
+    input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+    .btn-primary { background: #1a73e8; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
+    .btn-google { background: #fff; color: #444; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px;}
+    .btn-logout { background: transparent; color: #e74c3c; border: none; margin-top: 20px; font-weight: bold; cursor: pointer; text-decoration: underline; }
+    
+    #empty-msg { text-align: center; color: #777; margin-top: 30px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <div class="container" id="admin-app" style="display:none;">
-    <h1>Dr. Pavan - Admin Dashboard</h1>
+  <!-- SCREEN 1: Login -->
+  <div id="screen-login" class="screen">
+    <h2>Dr. Pavan's Clinic</h2>
+    <p>Please verify your identity to book a slot.</p>
+    <button class="btn-google" onclick="loginWithGoogle()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="20">
+      Sign in with Google
+    </button>
+  </div>
+
+  <!-- SCREEN 2: Details -->
+  <div id="screen-details" class="screen">
+    <h2>Patient Details</h2>
+    <input type="text" id="patient-name" placeholder="Full Name">
+    <input type="tel" id="patient-phone" placeholder="Phone Number">
+    <button class="btn-primary" onclick="saveDetails()">Continue to Booking</button>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+
+  <!-- SCREEN 3: Calendar & Booking UI -->
+  <div id="screen-booking" style="display: none;">
+    <div class="app-bar">
+      <span class="back-btn" onclick="logout()">←</span>
+      <span>Appointment</span>
+    </div>
     
-    <div class="tabs">
-      <div class="tab active-tab" onclick="switchTab('view')">View Schedule & Patients</div>
-      <div class="tab" onclick="switchTab('generate')">Generate New Slots</div>
+    <div class="date-header" id="month-label">August</div>
+    <div class="date-strip" id="date-strip">
+      <!-- Dates injected by JS -->
     </div>
 
-    <!-- PANEL 1: VIEW SCHEDULE -->
-    <div id="panel-view" class="panel active-panel">
-      <label><strong>Select Date to View:</strong></label>
-      <input type="date" id="view-date" onchange="loadSchedule()">
-      
-      <table id="schedule-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Status</th>
-            <th>Patient Name</th>
-            <th>Phone</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="schedule-body">
-          <tr><td colspan="5" style="text-align:center;">Select a date above</td></tr>
-        </tbody>
-      </table>
+    <div id="slots-container">
+      <!-- Slots injected by JS -->
     </div>
 
-    <!-- PANEL 2: GENERATE SLOTS -->
-    <div id="panel-generate" class="panel">
-      <p>Instantly create empty slots for a specific working day.</p>
-      <label>Date:</label>
-      <input type="date" id="gen-date">
-      
-      <label>Start Time:</label>
-      <input type="time" id="gen-start" value="10:00">
-      
-      <label>End Time:</label>
-      <input type="time" id="gen-end" value="17:00">
-      
-      <label>Slot Duration (Minutes):</label>
-      <select id="gen-interval">
-        <option value="15">15 Minutes</option>
-        <option value="20">20 Minutes</option>
-        <option value="30">30 Minutes</option>
-      </select>
-      
-      <button onclick="generateSlots()">Create Slots</button>
-      <p id="gen-msg" style="text-align:center; color: #27ae60; font-weight:bold;"></p>
+    <div class="bottom-bar" id="bottom-bar">
+      <button class="btn-confirm" id="btn-confirm" onclick="executeBooking()" disabled>Confirm Appointment</button>
     </div>
   </div>
 
   <script>
-    // 1. SIMPLE ADMIN SECURITY PIN
-    const pin = prompt("Enter Admin PIN to access dashboard:");
-    if(pin !== "1234") { // Change "1234" to whatever secret pin you want!
-      document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Access Denied</h2>";
-    } else {
-      document.getElementById('admin-app').style.display = "block";
-    }
-
-    // 2. SUPABASE CONNECTION
+    // --- SUPABASE CONFIG ---
     const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
-    // TOBI: PASTE YOUR LONG eyJ KEY HERE
+    
+    // TOBI: PASTE YOUR LONG eyJ... KEY HERE!
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmd0eXliaHlwYWp1dWp5YXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Nzk2MTksImV4cCI6MjEwNDM1NTYxOX0.mLh5sblYrOKjoey_LWcmUS4NQrqXrEyDzrDB6yWAKUE'; 
+    
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Sets today's date safely in YYYY-MM-DD format for inputs
-    const today = new Date().toLocaleDateString('en-CA'); 
-    document.getElementById('view-date').value = today;
-    document.getElementById('gen-date').value = today;
+    // --- STATE VARIABLES ---
+    let currentName = localStorage.getItem('clinic_name') || '';
+    let currentPhone = localStorage.getItem('clinic_phone') || '';
+    let currentUserId = null;
+    let selectedDate = new Date().toLocaleDateString('en-CA'); 
+    let selectedSlotIdToBook = null;
 
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active-tab'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
+    // --- AUTHENTICATION FLOW ---
+    function showScreen(screenId) {
+      document.getElementById('screen-login').style.display = 'none';
+      document.getElementById('screen-details').style.display = 'none';
+      document.getElementById('screen-booking').style.display = 'none';
       
-      if(tab === 'view') {
-        document.querySelectorAll('.tab')[0].classList.add('active-tab');
-        document.getElementById('panel-view').classList.add('active-panel');
-        loadSchedule();
+      if(screenId === 'screen-booking') {
+        document.getElementById('screen-booking').style.display = 'block';
       } else {
-        document.querySelectorAll('.tab')[1].classList.add('active-tab');
-        document.getElementById('panel-generate').classList.add('active-panel');
+        document.getElementById(screenId).style.display = 'block';
       }
     }
 
-    async function loadSchedule() {
-      const date = document.getElementById('view-date').value;
-      const tbody = document.getElementById('schedule-body');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-      
-      const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', date).order('time_slot');
-      
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="5" style="color:red;">Error: ${error.message}</td></tr>`;
-        return;
-      }
-      if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No slots created for this date yet.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = '';
-      data.forEach(slot => {
-        const tr = document.createElement('tr');
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        currentUserId = session.user.id;
+        const googleName = session.user.user_metadata.full_name;
+        if (googleName && !currentName) currentName = googleName;
         
-        let statusHtml = slot.status === 'booked' 
-          ? `<span class="status-booked">Booked</span>` 
-          : `<span class="status-available">Available</span>`;
-          
-        let actionHtml = slot.status === 'booked' 
-          ? `<button class="btn-danger" onclick="cancelBooking('${slot.id}')">Cancel / No-Show</button>`
-          : `<button class="btn-danger" style="background:#7f8c8d;" onclick="deleteSlot('${slot.id}')">Delete Slot</button>`;
+        document.getElementById('patient-name').value = currentName;
+        document.getElementById('patient-phone').value = currentPhone;
 
-        tr.innerHTML = `
-          <td><strong>${slot.time_slot}</strong></td>
-          <td>${statusHtml}</td>
-          <td>${slot.patient_name || '-'}</td>
-          <td>${slot.phone || '-'}</td>
-          <td>${actionHtml}</td>
-        `;
-        tbody.appendChild(tr);
+        if (currentName && currentPhone) {
+          showScreen('screen-booking');
+          renderDateStrip();
+          loadSlots();
+        } else {
+          showScreen('screen-details'); 
+        }
+      } else {
+        currentUserId = null;
+        showScreen('screen-login');
+      }
+    });
+
+    async function loginWithGoogle() {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: 'https://imran786sd.github.io/pavan/' }
       });
+      if (error) alert("Error logging in: " + error.message);
     }
 
-    // Deletes patient data and makes slot available again
-    async function cancelBooking(id) {
-      if(!confirm("Are you sure? This will remove the patient data and open the slot for someone else.")) return;
-      
-      const { error } = await supabaseClient.from('appointments')
-  .update({ status: 'available', patient_name: null, phone: null, user_id: null })
-  .eq('id', id);
-      
-      loadSchedule();
+    async function logout() {
+      const { error } = await supabaseClient.auth.signOut();
+      if (!error) {
+        localStorage.removeItem('clinic_name');
+        localStorage.removeItem('clinic_phone');
+        currentName = ''; currentPhone = ''; currentUserId = null;
+        document.getElementById('patient-name').value = '';
+        document.getElementById('patient-phone').value = '';
+      }
     }
 
-    // Permanently deletes an empty slot from the database
-    async function deleteSlot(id) {
-      if(!confirm("Permanently delete this empty time slot?")) return;
-      await supabaseClient.from('appointments').delete().eq('id', id);
-      loadSchedule();
+    function saveDetails() {
+      const nameInput = document.getElementById('patient-name').value;
+      const phoneInput = document.getElementById('patient-phone').value;
+      if (!nameInput || !phoneInput) return alert('Please enter both details.');
+      
+      localStorage.setItem('clinic_name', nameInput);
+      localStorage.setItem('clinic_phone', phoneInput);
+      currentName = nameInput; currentPhone = phoneInput;
+      
+      showScreen('screen-booking');
+      renderDateStrip();
+      loadSlots();
     }
 
-    // Generates an array of time strings based on intervals
-    async function generateSlots() {
-      const date = document.getElementById('gen-date').value;
-      const start = document.getElementById('gen-start').value;
-      const end = document.getElementById('gen-end').value;
-      const interval = parseInt(document.getElementById('gen-interval').value);
-      const msg = document.getElementById('gen-msg');
+    // --- DATE STRIP GENERATOR ---
+    function renderDateStrip() {
+      const strip = document.getElementById('date-strip');
+      strip.innerHTML = '';
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
       
-      if(!date || !start || !end) return alert("Please fill all fields.");
+      let baseDate = new Date();
       
-      msg.innerText = "Generating slots...";
-      
-      // Time math
-      let startTime = new Date(`1970-01-01T${start}:00`);
-      let endTime = new Date(`1970-01-01T${end}:00`);
-      let slotsToInsert = [];
-      
-      while(startTime < endTime) {
-        // Format to 12-hour AM/PM string
-        let hours = startTime.getHours();
-        let minutes = startTime.getMinutes();
-        let ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12; 
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        let timeString = `${hours}:${minutes} ${ampm}`;
+      for(let i=0; i<14; i++) {
+        let d = new Date();
+        d.setDate(baseDate.getDate() + i);
         
-        slotsToInsert.push({
-          date: date,
-          time_slot: timeString,
-          status: 'available'
+        const dateStr = d.toLocaleDateString('en-CA');
+        const dayName = days[d.getDay()];
+        const dateNum = d.getDate().toString().padStart(2, '0');
+        
+        // Update Month Label based on active selection
+        if(dateStr === selectedDate) {
+          document.getElementById('month-label').innerText = months[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        const div = document.createElement('div');
+        div.className = dateStr === selectedDate ? 'date-item active' : 'date-item';
+        div.innerHTML = `<span class="day">${dayName}</span><span class="num">${dateNum}</span>`;
+        
+        div.onclick = () => {
+          selectedDate = dateStr;
+          selectedSlotIdToBook = null; // Reset selection on day change
+          renderDateStrip(); // Re-render to move the active blue highlight
+          loadSlots();
+        };
+        
+        strip.appendChild(div);
+      }
+    }
+
+    // --- SLOT LOADING & CATEGORIZING ---
+    function getTimeCategory(timeStr) {
+      // Determines if a time like "10:00 AM" is Morning, Afternoon, or Evening
+      const isPM = timeStr.includes('PM');
+      let hour = parseInt(timeStr.split(':')[0]);
+      
+      if (isPM && hour !== 12) hour += 12;
+      if (!isPM && hour === 12) hour = 0;
+
+      if (hour < 12) return 'Morning Slots';
+      if (hour >= 12 && hour < 16) return 'Afternoon Slots';
+      return 'Evening Slots';
+    }
+
+    async function loadSlots() {
+      const container = document.getElementById('slots-container');
+      const bottomBar = document.getElementById('bottom-bar');
+      const confirmBtn = document.getElementById('btn-confirm');
+      
+      container.innerHTML = '<p id="empty-msg">Checking availability...</p>';
+      bottomBar.style.display = 'none';
+      
+      const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', selectedDate).order('time_slot');
+      
+      if (error) return container.innerHTML = `<p id="empty-msg" style="color:red;">Database Error</p>`;
+      if (!data || data.length === 0) return container.innerHTML = '<p id="empty-msg">No slots created for this date.</p>';
+
+      container.innerHTML = ''; 
+      bottomBar.style.display = 'block'; // Show the bottom bar structure
+      confirmBtn.disabled = true; // Disable confirm until they select one
+      
+      const userAlreadyBooked = data.some(slot => slot.user_id === currentUserId && slot.status !== 'available');
+
+      // Group slots by category
+      const groupedSlots = { 'Morning Slots': [], 'Afternoon Slots': [], 'Evening Slots': [] };
+      data.forEach(slot => { groupedSlots[getTimeCategory(slot.time_slot)].push(slot); });
+
+      // Draw the UI for each category
+      for (const [category, slots] in groupedSlots) {
+        if (groupedSlots[category].length === 0) continue;
+
+        const title = document.createElement('div');
+        title.className = 'section-title';
+        title.innerText = category;
+        container.appendChild(title);
+
+        const grid = document.createElement('div');
+        grid.className = 'slots-grid';
+
+        groupedSlots[category].forEach(slot => {
+          const div = document.createElement('div');
+          
+          if (slot.user_id === currentUserId && slot.status !== 'available') {
+            div.className = 'slot my-booking';
+            div.innerText = slot.time_slot;
+            div.onclick = () => cancelMyBooking(slot.id); 
+          } 
+          else if (slot.status !== 'available') {
+            div.className = 'slot locked';
+            div.innerText = slot.time_slot;
+          } 
+          else {
+            div.className = slot.id === selectedSlotIdToBook ? 'slot selected' : 'slot';
+            div.innerText = slot.time_slot;
+            div.onclick = () => {
+              if (userAlreadyBooked) {
+                alert('You already have a booking on this date! Click your green slot to cancel it first.');
+              } else {
+                selectedSlotIdToBook = slot.id;
+                loadSlots(); // Refresh UI to show the blue selection
+              }
+            };
+          }
+          grid.appendChild(div);
         });
-        
-        startTime.setMinutes(startTime.getMinutes() + interval);
+        container.appendChild(grid);
       }
       
-      // Send bulk insert to Supabase
-      const { error } = await supabaseClient.from('appointments').insert(slotsToInsert);
-      
-      if(error) {
-        msg.style.color = "red";
-        msg.innerText = `Error: ${error.message} (You might have already generated slots for this date)`;
+      // Update confirm button state
+      if (selectedSlotIdToBook) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = "Confirm Appointment";
       } else {
-        msg.style.color = "#27ae60";
-        msg.innerText = `Successfully created ${slotsToInsert.length} slots for ${date}!`;
-        setTimeout(() => { msg.innerText = ''; switchTab('view'); }, 2000);
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Select a time slot";
       }
     }
-    
-    loadSchedule(); // Load today's schedule on open
+
+    async function executeBooking() {
+      if (!selectedSlotIdToBook) return;
+      
+      const confirmBtn = document.getElementById('btn-confirm');
+      confirmBtn.innerText = "Booking...";
+      confirmBtn.disabled = true;
+
+      const { error } = await supabaseClient
+        .from('appointments')
+        .update({ status: 'booked', patient_name: currentName, phone: currentPhone, user_id: currentUserId })
+        .eq('id', selectedSlotIdToBook);
+      
+      if(!error) {
+        selectedSlotIdToBook = null; // Clear selection
+        alert('Booking Successful!');
+        loadSlots(); 
+      } else {
+        alert('Error: ' + error.message);
+        selectedSlotIdToBook = null;
+        loadSlots();
+      }
+    }
+
+    async function cancelMyBooking(slotId) {
+      if (!confirm('Cancel your appointment? This will release the slot.')) return;
+      
+      const { error } = await supabaseClient
+        .from('appointments')
+        .update({ status: 'available', patient_name: null, phone: null, user_id: null })
+        .eq('id', slotId);
+        
+      if(!error) loadSlots(); 
+      else alert('Error: ' + error.message);
+    }
   </script>
 </body>
 </html>
