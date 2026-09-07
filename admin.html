@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clinic Admin Dashboard</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    h1 { color: #2c3e50; text-align: center; }
+    
+    .tabs { display: flex; border-bottom: 2px solid #ecf0f1; margin-bottom: 20px; }
+    .tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; font-weight: bold; color: #7f8c8d; }
+    .active-tab { color: #1a73e8; border-bottom: 3px solid #1a73e8; }
+    
+    .panel { display: none; }
+    .active-panel { display: block; }
+    
+    input, select { width: 100%; padding: 10px; margin: 10px 0 20px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    button { background: #1a73e8; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+    button:hover { background: #1557b0; }
+    .btn-danger { background: #e74c3c; width: auto; padding: 8px 15px; font-size: 12px; }
+    .btn-danger:hover { background: #c0392b; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background-color: #f8f9fa; color: #333; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .status-booked { color: #27ae60; font-weight: bold; }
+    .status-available { color: #7f8c8d; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="container" id="admin-app" style="display:none;">
+    <h1>Dr. Pavan - Admin Dashboard</h1>
+    
+    <div class="tabs">
+      <div class="tab active-tab" onclick="switchTab('view')">View Schedule & Patients</div>
+      <div class="tab" onclick="switchTab('generate')">Generate New Slots</div>
+    </div>
+
+    <!-- PANEL 1: VIEW SCHEDULE -->
+    <div id="panel-view" class="panel active-panel">
+      <label><strong>Select Date to View:</strong></label>
+      <input type="date" id="view-date" onchange="loadSchedule()">
+      
+      <table id="schedule-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Patient Name</th>
+            <th>Phone</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="schedule-body">
+          <tr><td colspan="5" style="text-align:center;">Select a date above</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PANEL 2: GENERATE SLOTS -->
+    <div id="panel-generate" class="panel">
+      <p>Instantly create empty slots for a specific working day.</p>
+      <label>Date:</label>
+      <input type="date" id="gen-date">
+      
+      <label>Start Time:</label>
+      <input type="time" id="gen-start" value="10:00">
+      
+      <label>End Time:</label>
+      <input type="time" id="gen-end" value="17:00">
+      
+      <label>Slot Duration (Minutes):</label>
+      <select id="gen-interval">
+        <option value="15">15 Minutes</option>
+        <option value="20">20 Minutes</option>
+        <option value="30">30 Minutes</option>
+      </select>
+      
+      <button onclick="generateSlots()">Create Slots</button>
+      <p id="gen-msg" style="text-align:center; color: #27ae60; font-weight:bold;"></p>
+    </div>
+  </div>
+
+  <script>
+    // 1. SIMPLE ADMIN SECURITY PIN
+    const pin = prompt("Enter Admin PIN to access dashboard:");
+    if(pin !== "1234") { // Change "1234" to whatever secret pin you want!
+      document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Access Denied</h2>";
+    } else {
+      document.getElementById('admin-app').style.display = "block";
+    }
+
+    // 2. SUPABASE CONNECTION
+    const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
+    // TOBI: PASTE YOUR LONG eyJ KEY HERE
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmd0eXliaHlwYWp1dWp5YXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Nzk2MTksImV4cCI6MjEwNDM1NTYxOX0.mLh5sblYrOKjoey_LWcmUS4NQrqXrEyDzrDB6yWAKUE'; 
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Sets today's date safely in YYYY-MM-DD format for inputs
+    const today = new Date().toLocaleDateString('en-CA'); 
+    document.getElementById('view-date').value = today;
+    document.getElementById('gen-date').value = today;
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active-tab'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
+      
+      if(tab === 'view') {
+        document.querySelectorAll('.tab')[0].classList.add('active-tab');
+        document.getElementById('panel-view').classList.add('active-panel');
+        loadSchedule();
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active-tab');
+        document.getElementById('panel-generate').classList.add('active-panel');
+      }
+    }
+
+    async function loadSchedule() {
+      const date = document.getElementById('view-date').value;
+      const tbody = document.getElementById('schedule-body');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+      
+      const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', date).order('time_slot');
+      
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:red;">Error: ${error.message}</td></tr>`;
+        return;
+      }
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No slots created for this date yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.forEach(slot => {
+        const tr = document.createElement('tr');
+        
+        let statusHtml = slot.status === 'booked' 
+          ? `<span class="status-booked">Booked</span>` 
+          : `<span class="status-available">Available</span>`;
+          
+        let actionHtml = slot.status === 'booked' 
+          ? `<button class="btn-danger" onclick="cancelBooking('${slot.id}')">Cancel / No-Show</button>`
+          : `<button class="btn-danger" style="background:#7f8c8d;" onclick="deleteSlot('${slot.id}')">Delete Slot</button>`;
+
+        tr.innerHTML = `
+          <td><strong>${slot.time_slot}</strong></td>
+          <td>${statusHtml}</td>
+          <td>${slot.patient_name || '-'}</td>
+          <td>${slot.phone || '-'}</td>
+          <td>${actionHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Deletes patient data and makes slot available again
+    async function cancelBooking(id) {
+      if(!confirm("Are you sure? This will remove the patient data and open the slot for someone else.")) return;
+      
+      await supabaseClient.from('appointments')
+        .update({ status: 'available', patient_name: null, phone: null })
+        .eq('id', id);
+      
+      loadSchedule();
+    }
+
+    // Permanently deletes an empty slot from the database
+    async function deleteSlot(id) {
+      if(!confirm("Permanently delete this empty time slot?")) return;
+      await supabaseClient.from('appointments').delete().eq('id', id);
+      loadSchedule();
+    }
+
+    // Generates an array of time strings based on intervals
+    async function generateSlots() {
+      const date = document.getElementById('gen-date').value;
+      const start = document.getElementById('gen-start').value;
+      const end = document.getElementById('gen-end').value;
+      const interval = parseInt(document.getElementById('gen-interval').value);
+      const msg = document.getElementById('gen-msg');
+      
+      if(!date || !start || !end) return alert("Please fill all fields.");
+      
+      msg.innerText = "Generating slots...";
+      
+      // Time math
+      let startTime = new Date(`1970-01-01T${start}:00`);
+      let endTime = new Date(`1970-01-01T${end}:00`);
+      let slotsToInsert = [];
+      
+      while(startTime < endTime) {
+        // Format to 12-hour AM/PM string
+        let hours = startTime.getHours();
+        let minutes = startTime.getMinutes();
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; 
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        let timeString = `${hours}:${minutes} ${ampm}`;
+        
+        slotsToInsert.push({
+          date: date,
+          time_slot: timeString,
+          status: 'available'
+        });
+        
+        startTime.setMinutes(startTime.getMinutes() + interval);
+      }
+      
+      // Send bulk insert to Supabase
+      const { error } = await supabaseClient.from('appointments').insert(slotsToInsert);
+      
+      if(error) {
+        msg.style.color = "red";
+        msg.innerText = `Error: ${error.message} (You might have already generated slots for this date)`;
+      } else {
+        msg.style.color = "#27ae60";
+        msg.innerText = `Successfully created ${slotsToInsert.length} slots for ${date}!`;
+        setTimeout(() => { msg.innerText = ''; switchTab('view'); }, 2000);
+      }
+    }
+    
+    loadSchedule(); // Load today's schedule on open
+  </script>
+</body>
+</html>
