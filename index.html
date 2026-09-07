@@ -7,145 +7,166 @@
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1a73e8">
   <style>
-    body { 
-      font-family: system-ui, sans-serif; 
-      text-align: center; 
-      padding: 20px; 
-      max-width: 600px;
-      margin: 0 auto;
-    }
+    body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; max-width: 500px; margin: 0 auto; }
     h1 { color: #2c3e50; font-size: 24px; margin-bottom: 5px; }
     .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
     
-    /* Date Picker Styling */
-    .date-picker-container { margin-bottom: 20px; }
-    input[type="date"] { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
+    .screen { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .active-screen { display: block; }
     
-    .slot { 
-      background: #1a73e8; 
-      color: white; 
-      padding: 15px 30px; 
-      margin: 10px; 
-      border-radius: 8px; 
-      cursor: pointer; 
-      display: inline-block; 
-      font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: background 0.3s;
-    }
-    .slot:hover { background: #1557b0; }
-    .locked { background: #bdc3c7; cursor: not-allowed; box-shadow: none; }
-    .locked:hover { background: #bdc3c7; }
-    .my-locked { background: #27ae60; } /* Turns green for the slot YOU clicked */
-    .my-locked:hover { background: #219653; }
-    #error-msg { color: #e74c3c; font-weight: bold; margin-top: 20px; }
+    input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+    
+    button { background: #1a73e8; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; }
+    button:hover { background: #1557b0; }
+    
+    .btn-google { background: #fff; color: #444; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-google:hover { background: #f1f1f1; }
+    .btn-google img { width: 20px; }
+    
+    .date-picker-container { margin-bottom: 20px; }
+    .slot { background: #1a73e8; color: white; padding: 15px 20px; margin: 8px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: bold; }
+    .locked { background: #bdc3c7; cursor: not-allowed; }
+    
+    #error-msg { color: #e74c3c; font-weight: bold; margin-top: 15px; }
   </style>
-  
-  <!-- Load Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   
   <h1>Dr. M. S. N. Pavan Kumar</h1>
-  <div class="subtitle">
-    Sr. Consultant Interventional Cardiologist<br>
-    MD, DM (NIMS)
+  <div class="subtitle">Sr. Consultant Interventional Cardiologist<br>MD, DM (NIMS)</div>
+
+  <!-- SCREEN 1: Login -->
+  <div id="screen-login" class="screen">
+    <h3>Step 1: Verification</h3>
+    <p>Please verify your identity to book a slot.</p>
+    <button class="btn-google" onclick="loginWithGoogle()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
+      Sign in with Google
+    </button>
   </div>
 
-  <!-- NEW: Date Picker -->
-  <div class="date-picker-container">
-    <label for="appointment-date"><strong>Select Date: </strong></label>
-    <input type="date" id="appointment-date" onchange="loadSlots()">
+  <!-- SCREEN 2: Details -->
+  <div id="screen-details" class="screen">
+    <h3>Step 2: Patient Details</h3>
+    <input type="text" id="patient-name" placeholder="Full Name">
+    <input type="tel" id="patient-phone" placeholder="Phone Number">
+    <button onclick="saveDetails()">Continue to Calendar</button>
   </div>
-  
-  <p>Available times:</p>
-  
-  <div id="slots-container">Loading slots...</div>
-  <div id="error-msg"></div>
+
+  <!-- SCREEN 3: Calendar -->
+  <div id="screen-booking" class="screen">
+    <h3>Step 3: Select Appointment</h3>
+    <div class="date-picker-container">
+      <label><strong>Date: </strong></label>
+      <input type="date" id="appointment-date" onchange="loadSlots()">
+    </div>
+    <div id="slots-container">Loading calendar...</div>
+  </div>
 
   <script>
     const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
-    // TOBI: PASTE YOUR LONG KEY HERE!
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmd0eXliaHlwYWp1dWp5YXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Nzk2MTksImV4cCI6MjEwNDM1NTYxOX0.mLh5sblYrOKjoey_LWcmUS4NQrqXrEyDzrDB6yWAKUE'; 
+    // TOBI: PASTE YOUR LONG eyJ... KEY HERE!
+    const supabaseKey = 'PASTE_YOUR_LONG_EYJ_ANON_KEY_HERE'; 
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // LOGIC 1: Prevent multiple clicks
-    let myLockedSlotId = null;
+    let currentName = '';
+    let currentPhone = '';
 
-    // LOGIC 2: Block past dates by setting the minimum date to Today
-    const dateInput = document.getElementById('appointment-date');
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.min = today; // Blocks past dates
-    dateInput.value = today; // Defaults to today
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+      document.getElementById(screenId).classList.add('active-screen');
+    }
+
+    // On Page Load: Check if the user is already logged in
+    async function checkSession() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      
+      if (session) {
+        // User is logged in! Pre-fill their name from Google
+        const googleName = session.user.user_metadata.full_name;
+        if(googleName) {
+          document.getElementById('patient-name').value = googleName;
+        }
+        showScreen('screen-details');
+      } else {
+        // User is NOT logged in
+        showScreen('screen-login');
+      }
+    }
+
+    // Trigger the Google Login popup
+    async function loginWithGoogle() {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://imran786sd.github.io/pavan/'
+        }
+      });
+      if (error) alert("Error logging in: " + error.message);
+    }
+
+    function saveDetails() {
+      const nameInput = document.getElementById('patient-name').value;
+      const phoneInput = document.getElementById('patient-phone').value;
+      
+      if (!nameInput || !phoneInput) return alert('Please enter both your name and phone number.');
+      
+      currentName = nameInput;
+      currentPhone = phoneInput;
+      
+      const dateInput = document.getElementById('appointment-date');
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.min = today;
+      dateInput.value = today;
+      
+      showScreen('screen-booking');
+      loadSlots();
+    }
 
     async function loadSlots() {
       const container = document.getElementById('slots-container');
-      const errorContainer = document.getElementById('error-msg');
-      const selectedDate = dateInput.value;
+      const dateInput = document.getElementById('appointment-date').value;
       
-      errorContainer.innerText = ''; 
       container.innerHTML = 'Checking availability...';
       
-      // Fetch data only for the selected date
-      const { data, error } = await supabaseClient
-        .from('appointments')
-        .select('*')
-        .eq('date', selectedDate)
-        .order('time_slot');
+      const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', dateInput).order('time_slot');
       
-      if (error) {
-        container.innerHTML = '';
-        errorContainer.innerText = `Database Error: ${error.message}`;
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        container.innerHTML = 'No slots available for this date.';
-        return;
-      }
+      if (error) return container.innerHTML = `<span style="color:red;">Database Error</span>`;
+      if (!data || data.length === 0) return container.innerHTML = 'No slots available for this date.';
 
       container.innerHTML = ''; 
       data.forEach(slot => {
         const div = document.createElement('div');
+        div.className = slot.status === 'available' ? 'slot' : 'slot locked';
+        div.innerText = slot.time_slot + (slot.status !== 'available' ? ' (Booked)' : '');
         
-        // Check if this is the slot the user just clicked
-        if (slot.id === myLockedSlotId) {
-          div.className = 'slot my-locked';
-          div.innerText = slot.time_slot + ' (Selected)';
-        } else {
-          div.className = slot.status === 'available' ? 'slot' : 'slot locked';
-          div.innerText = slot.time_slot + (slot.status !== 'available' ? ' (Locked)' : '');
-        }
-        
-        if(slot.status === 'available' && slot.id !== myLockedSlotId) {
-          div.onclick = () => lockSlot(slot.id);
+        if(slot.status === 'available') {
+          div.onclick = () => confirmBooking(slot.id);
         }
         container.appendChild(div);
       });
     }
 
-    async function lockSlot(id) {
-      // Check if the user already clicked a slot
-      if (myLockedSlotId !== null) {
-        alert('You can only select one slot per day! Please refresh the page if you want to change it.');
-        return;
-      }
+    async function confirmBooking(slotId) {
+      if (!confirm(`Book this slot for ${currentName}?`)) return;
 
       const { error } = await supabaseClient
         .from('appointments')
-        .update({ status: 'locked', locked_at: new Date().toISOString() })
-        .eq('id', id);
+        .update({ status: 'booked', patient_name: currentName, phone: currentPhone })
+        .eq('id', slotId);
       
       if(!error) {
-        myLockedSlotId = id; // Remember that THIS user locked THIS slot
-        loadSlots(); // Refresh the UI (it will turn green)
+        alert('Booking Successful! We look forward to seeing you.');
+        loadSlots(); 
       } else {
-        alert('Sorry, someone else just grabbed this slot.');
+        alert('Error: Someone else may have just booked this slot.');
         loadSlots();
       }
     }
 
-    loadSlots(); 
+    // Run the session check when the page opens
+    checkSession();
   </script>
 </body>
 </html>
