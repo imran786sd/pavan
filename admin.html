@@ -163,9 +163,9 @@
     async function cancelBooking(id) {
       if(!confirm("Are you sure? This will remove the patient data and open the slot for someone else.")) return;
       
-      await supabaseClient.from('appointments')
-        .update({ status: 'available', patient_name: null, phone: null })
-        .eq('id', id);
+      const { error } = await supabaseClient.from('appointments')
+  .update({ status: 'available', patient_name: null, phone: null, user_id: null })
+  .eq('id', id);
       
       loadSchedule();
     }
