@@ -23,15 +23,12 @@
     .btn-google:hover { background: #f1f1f1; }
     .btn-google img { width: 20px; }
     
-    /* Logout Button Styling */
     .btn-logout { background: transparent; color: #e74c3c; border: 1px solid #e74c3c; margin-top: 20px; }
     .btn-logout:hover { background: #e74c3c; color: white; }
     
     .date-picker-container { margin-bottom: 20px; }
     .slot { background: #1a73e8; color: white; padding: 15px 20px; margin: 8px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: bold; }
     .locked { background: #bdc3c7; cursor: not-allowed; }
-    
-    #error-msg { color: #e74c3c; font-weight: bold; margin-top: 15px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -72,31 +69,42 @@
 
   <script>
     const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
-    
     // TOBI: PASTE YOUR LONG eyJ... KEY HERE!
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmd0eXliaHlwYWp1dWp5YXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Nzk2MTksImV4cCI6MjEwNDM1NTYxOX0.mLh5sblYrOKjoey_LWcmUS4NQrqXrEyDzrDB6yWAKUE'; 
-    
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    let currentName = '';
-    let currentPhone = '';
+    // NEW: Pull details from local browser memory!
+    let currentName = localStorage.getItem('clinic_name') || '';
+    let currentPhone = localStorage.getItem('clinic_phone') || '';
 
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
       document.getElementById(screenId).classList.add('active-screen');
     }
 
-    // NEW: Automatically detect when the user logs in or logs out
+    // Check login and skip steps if they already entered their phone number
     supabaseClient.auth.onAuthStateChange((event, session) => {
       if (session) {
-        // User successfully logged in
         const googleName = session.user.user_metadata.full_name;
-        if (googleName && !document.getElementById('patient-name').value) {
-          document.getElementById('patient-name').value = googleName;
+        if (googleName && !currentName) currentName = googleName;
+        
+        document.getElementById('patient-name').value = currentName;
+        document.getElementById('patient-phone').value = currentPhone;
+
+        if (currentName && currentPhone) {
+          // They already saved their details previously! Go straight to calendar.
+          const dateInput = document.getElementById('appointment-date');
+          const today = new Date().toLocaleDateString('en-CA'); 
+          dateInput.min = today;
+          if (!dateInput.value) dateInput.value = today;
+          
+          showScreen('screen-booking');
+          loadSlots();
+        } else {
+          // First time logging in, need phone number.
+          showScreen('screen-details'); 
         }
-        showScreen('screen-details'); 
       } else {
-        // User is not logged in (or just logged out)
         showScreen('screen-login');
       }
     });
@@ -104,24 +112,21 @@
     async function loginWithGoogle() {
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: 'https://imran786sd.github.io/pavan/'
-        }
+        options: { redirectTo: 'https://imran786sd.github.io/pavan/' }
       });
       if (error) alert("Error logging in: " + error.message);
     }
 
     async function logout() {
       const { error } = await supabaseClient.auth.signOut();
-      if (error) {
-        alert("Error signing out: " + error.message);
-      } else {
-        // Clear the local variables
+      if (!error) {
+        // Clear memory on logout
+        localStorage.removeItem('clinic_name');
+        localStorage.removeItem('clinic_phone');
         currentName = '';
         currentPhone = '';
         document.getElementById('patient-name').value = '';
         document.getElementById('patient-phone').value = '';
-        // The onAuthStateChange listener will automatically flip back to Step 1
       }
     }
 
@@ -131,16 +136,16 @@
       
       if (!nameInput || !phoneInput) return alert('Please enter both your name and phone number.');
       
+      // NEW: Save to browser memory permanently
+      localStorage.setItem('clinic_name', nameInput);
+      localStorage.setItem('clinic_phone', phoneInput);
       currentName = nameInput;
       currentPhone = phoneInput;
       
       const dateInput = document.getElementById('appointment-date');
-      // Sets today's date safely in YYYY-MM-DD format
       const today = new Date().toLocaleDateString('en-CA'); 
       dateInput.min = today;
-      if (!dateInput.value) {
-        dateInput.value = today;
-      }
+      if (!dateInput.value) dateInput.value = today;
       
       showScreen('screen-booking');
       loadSlots();
@@ -173,6 +178,7 @@
     async function confirmBooking(slotId) {
       if (!confirm(`Book this slot for ${currentName}?`)) return;
 
+      // Now it will correctly send the phone number to the Admin!
       const { error } = await supabaseClient
         .from('appointments')
         .update({ status: 'booked', patient_name: currentName, phone: currentPhone })
