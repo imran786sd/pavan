@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HeartCare Clinic</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#1a73e8">
+  <style>
+    body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; }
+    .slot { background: #1a73e8; color: white; padding: 15px; margin: 10px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: bold;}
+  </style>
+</head>
+<body>
+  <h1>Dr. Tobi's Cardiology Clinic</h1>
+  <p>Select a time for your appointment:</p>
+  
+  <div class="slot" onclick="alert('Connecting to Supabase soon!')">10:00 AM</div>
+  <div class="slot" onclick="alert('Connecting to Supabase soon!')">11:00 AM</div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>
