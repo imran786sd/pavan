@@ -188,7 +188,8 @@
         alert('Booking Successful! We look forward to seeing you.');
         loadSlots(); 
       } else {
-        alert('Error: Someone else may have just booked this slot.');
+        alert('Database Error: ' + error.message);
+        console.error(error);
         loadSlots();
       }
     }
