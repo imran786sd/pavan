@@ -35,7 +35,7 @@
     .btn-confirm { background: #1a73e8; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
     .btn-confirm:disabled { background: #ccc; cursor: not-allowed; }
     
-    /* Login & Details Screens (Hidden in booking view) */
+    /* Login & Details Screens */
     .screen { display: none; background: white; padding: 30px; border-radius: 15px; margin: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
     .active-screen { display: block; }
     input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
@@ -90,22 +90,17 @@
   </div>
 
   <script>
-    // --- SUPABASE CONFIG ---
     const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
-    
     // TOBI: PASTE YOUR LONG eyJ... KEY HERE!
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmd0eXliaHlwYWp1dWp5YXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Nzk2MTksImV4cCI6MjEwNDM1NTYxOX0.mLh5sblYrOKjoey_LWcmUS4NQrqXrEyDzrDB6yWAKUE'; 
-    
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // --- STATE VARIABLES ---
     let currentName = localStorage.getItem('clinic_name') || '';
     let currentPhone = localStorage.getItem('clinic_phone') || '';
     let currentUserId = null;
     let selectedDate = new Date().toLocaleDateString('en-CA'); 
     let selectedSlotIdToBook = null;
 
-    // --- AUTHENTICATION FLOW ---
     function showScreen(screenId) {
       document.getElementById('screen-login').style.display = 'none';
       document.getElementById('screen-details').style.display = 'none';
@@ -173,7 +168,6 @@
       loadSlots();
     }
 
-    // --- DATE STRIP GENERATOR ---
     function renderDateStrip() {
       const strip = document.getElementById('date-strip');
       strip.innerHTML = '';
@@ -190,7 +184,6 @@
         const dayName = days[d.getDay()];
         const dateNum = d.getDate().toString().padStart(2, '0');
         
-        // Update Month Label based on active selection
         if(dateStr === selectedDate) {
           document.getElementById('month-label').innerText = months[d.getMonth()] + ' ' + d.getFullYear();
         }
@@ -201,8 +194,8 @@
         
         div.onclick = () => {
           selectedDate = dateStr;
-          selectedSlotIdToBook = null; // Reset selection on day change
-          renderDateStrip(); // Re-render to move the active blue highlight
+          selectedSlotIdToBook = null; 
+          renderDateStrip(); 
           loadSlots();
         };
         
@@ -210,9 +203,7 @@
       }
     }
 
-    // --- SLOT LOADING & CATEGORIZING ---
     function getTimeCategory(timeStr) {
-      // Determines if a time like "10:00 AM" is Morning, Afternoon, or Evening
       const isPM = timeStr.includes('PM');
       let hour = parseInt(timeStr.split(':')[0]);
       
@@ -238,17 +229,16 @@
       if (!data || data.length === 0) return container.innerHTML = '<p id="empty-msg">No slots created for this date.</p>';
 
       container.innerHTML = ''; 
-      bottomBar.style.display = 'block'; // Show the bottom bar structure
-      confirmBtn.disabled = true; // Disable confirm until they select one
+      bottomBar.style.display = 'block'; 
+      confirmBtn.disabled = true; 
       
       const userAlreadyBooked = data.some(slot => slot.user_id === currentUserId && slot.status !== 'available');
 
-      // Group slots by category
       const groupedSlots = { 'Morning Slots': [], 'Afternoon Slots': [], 'Evening Slots': [] };
       data.forEach(slot => { groupedSlots[getTimeCategory(slot.time_slot)].push(slot); });
 
-      // Draw the UI for each category
-      for (const [category, slots] in groupedSlots) {
+      // FIX: Corrected the loop syntax here to draw the UI properly
+      for (const category in groupedSlots) {
         if (groupedSlots[category].length === 0) continue;
 
         const title = document.createElement('div');
@@ -279,7 +269,7 @@
                 alert('You already have a booking on this date! Click your green slot to cancel it first.');
               } else {
                 selectedSlotIdToBook = slot.id;
-                loadSlots(); // Refresh UI to show the blue selection
+                loadSlots(); 
               }
             };
           }
@@ -288,7 +278,6 @@
         container.appendChild(grid);
       }
       
-      // Update confirm button state
       if (selectedSlotIdToBook) {
         confirmBtn.disabled = false;
         confirmBtn.innerText = "Confirm Appointment";
@@ -311,7 +300,7 @@
         .eq('id', selectedSlotIdToBook);
       
       if(!error) {
-        selectedSlotIdToBook = null; // Clear selection
+        selectedSlotIdToBook = null; 
         alert('Booking Successful!');
         loadSlots(); 
       } else {
