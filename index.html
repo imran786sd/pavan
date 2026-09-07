@@ -72,8 +72,10 @@
 
   <script>
     const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
+    
     // TOBI: PASTE YOUR LONG eyJ... KEY HERE!
-    const supabaseKey = 'PASTE_YOUR_LONG_EYJ_ANON_KEY_HERE'; 
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmd0eXliaHlwYWp1dWp5YXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Nzk2MTksImV4cCI6MjEwNDM1NTYxOX0.mLh5sblYrOKjoey_LWcmUS4NQrqXrEyDzrDB6yWAKUE'; 
+    
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     let currentName = '';
@@ -84,19 +86,20 @@
       document.getElementById(screenId).classList.add('active-screen');
     }
 
-    async function checkSession() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      
+    // NEW: Automatically detect when the user logs in or logs out
+    supabaseClient.auth.onAuthStateChange((event, session) => {
       if (session) {
+        // User successfully logged in
         const googleName = session.user.user_metadata.full_name;
-        if(googleName && !document.getElementById('patient-name').value) {
+        if (googleName && !document.getElementById('patient-name').value) {
           document.getElementById('patient-name').value = googleName;
         }
-        showScreen('screen-details');
+        showScreen('screen-details'); 
       } else {
+        // User is not logged in (or just logged out)
         showScreen('screen-login');
       }
-    }
+    });
 
     async function loginWithGoogle() {
       const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -108,20 +111,17 @@
       if (error) alert("Error logging in: " + error.message);
     }
 
-    // NEW: Logout Function
     async function logout() {
       const { error } = await supabaseClient.auth.signOut();
       if (error) {
         alert("Error signing out: " + error.message);
       } else {
-        // Clear the local variables and form inputs
+        // Clear the local variables
         currentName = '';
         currentPhone = '';
         document.getElementById('patient-name').value = '';
         document.getElementById('patient-phone').value = '';
-        
-        // Send user back to the login screen
-        showScreen('screen-login');
+        // The onAuthStateChange listener will automatically flip back to Step 1
       }
     }
 
@@ -135,9 +135,12 @@
       currentPhone = phoneInput;
       
       const dateInput = document.getElementById('appointment-date');
-      const today = new Date().toISOString().split('T')[0];
+      // Sets today's date safely in YYYY-MM-DD format
+      const today = new Date().toLocaleDateString('en-CA'); 
       dateInput.min = today;
-      dateInput.value = today;
+      if (!dateInput.value) {
+        dateInput.value = today;
+      }
       
       showScreen('screen-booking');
       loadSlots();
@@ -183,8 +186,6 @@
         loadSlots();
       }
     }
-
-    checkSession();
   </script>
 </body>
 </html>
