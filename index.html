@@ -15,17 +15,20 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <h1>Dr. Tobi's Cardiology Clinic</h1>
+  <h1>Dr. M. S. N. Pavan Kumar
+Occupation: Sr. Consultant Interventional Cardiologist
+
+Qualifications: MD, DM (NIMS)</h1>
   <p>Select a time for your appointment:</p>
   
   <div id="slots-container">Loading slots...</div>
 
   <script>
     // Initialize Supabase
-    const supabaseUrl = 'YOUR_SUPABASE_URL';
-    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+    // Initialize Supabase
+    const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
+    const supabaseKey = 'sb_publishable_pftNHgVcw025hBQ99stQ-Q_gbv1WawM';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
     async function loadSlots() {
       const { data, error } = await supabase.from('appointments').select('*').order('time_slot');
       const container = document.getElementById('slots-container');
