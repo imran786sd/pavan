@@ -27,8 +27,12 @@
     .btn-logout:hover { background: #e74c3c; color: white; }
     
     .date-picker-container { margin-bottom: 20px; }
+    
+    /* Slot Colors */
     .slot { background: #1a73e8; color: white; padding: 15px 20px; margin: 8px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: bold; }
     .locked { background: #bdc3c7; cursor: not-allowed; }
+    .my-booking { background: #27ae60; } /* Green for user's own booking */
+    .my-booking:hover { background: #219653; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -37,7 +41,6 @@
   <h1>Dr. M. S. N. Pavan Kumar</h1>
   <div class="subtitle">Sr. Consultant Interventional Cardiologist<br>MD, DM (NIMS)</div>
 
-  <!-- SCREEN 1: Login -->
   <div id="screen-login" class="screen">
     <h3>Step 1: Verification</h3>
     <p>Please verify your identity to book a slot.</p>
@@ -47,7 +50,6 @@
     </button>
   </div>
 
-  <!-- SCREEN 2: Details -->
   <div id="screen-details" class="screen">
     <h3>Step 2: Patient Details</h3>
     <input type="text" id="patient-name" placeholder="Full Name">
@@ -56,7 +58,6 @@
     <button class="btn-logout" onclick="logout()">Sign Out</button>
   </div>
 
-  <!-- SCREEN 3: Calendar -->
   <div id="screen-booking" class="screen">
     <h3>Step 3: Select Appointment</h3>
     <div class="date-picker-container">
@@ -73,18 +74,18 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmd0eXliaHlwYWp1dWp5YXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Nzk2MTksImV4cCI6MjEwNDM1NTYxOX0.mLh5sblYrOKjoey_LWcmUS4NQrqXrEyDzrDB6yWAKUE'; 
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // NEW: Pull details from local browser memory!
     let currentName = localStorage.getItem('clinic_name') || '';
     let currentPhone = localStorage.getItem('clinic_phone') || '';
+    let currentUserId = null; // NEW: Track the logged-in user
 
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
       document.getElementById(screenId).classList.add('active-screen');
     }
 
-    // Check login and skip steps if they already entered their phone number
     supabaseClient.auth.onAuthStateChange((event, session) => {
       if (session) {
+        currentUserId = session.user.id; // Get secure Google ID
         const googleName = session.user.user_metadata.full_name;
         if (googleName && !currentName) currentName = googleName;
         
@@ -92,7 +93,6 @@
         document.getElementById('patient-phone').value = currentPhone;
 
         if (currentName && currentPhone) {
-          // They already saved their details previously! Go straight to calendar.
           const dateInput = document.getElementById('appointment-date');
           const today = new Date().toLocaleDateString('en-CA'); 
           dateInput.min = today;
@@ -101,10 +101,10 @@
           showScreen('screen-booking');
           loadSlots();
         } else {
-          // First time logging in, need phone number.
           showScreen('screen-details'); 
         }
       } else {
+        currentUserId = null;
         showScreen('screen-login');
       }
     });
@@ -120,11 +120,9 @@
     async function logout() {
       const { error } = await supabaseClient.auth.signOut();
       if (!error) {
-        // Clear memory on logout
         localStorage.removeItem('clinic_name');
         localStorage.removeItem('clinic_phone');
-        currentName = '';
-        currentPhone = '';
+        currentName = ''; currentPhone = ''; currentUserId = null;
         document.getElementById('patient-name').value = '';
         document.getElementById('patient-phone').value = '';
       }
@@ -136,11 +134,9 @@
       
       if (!nameInput || !phoneInput) return alert('Please enter both your name and phone number.');
       
-      // NEW: Save to browser memory permanently
       localStorage.setItem('clinic_name', nameInput);
       localStorage.setItem('clinic_phone', phoneInput);
-      currentName = nameInput;
-      currentPhone = phoneInput;
+      currentName = nameInput; currentPhone = phoneInput;
       
       const dateInput = document.getElementById('appointment-date');
       const today = new Date().toLocaleDateString('en-CA'); 
@@ -158,18 +154,39 @@
       container.innerHTML = 'Checking availability...';
       
       const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', dateInput).order('time_slot');
-      
       if (error) return container.innerHTML = `<span style="color:red;">Database Error</span>`;
       if (!data || data.length === 0) return container.innerHTML = 'No slots available for this date.';
 
       container.innerHTML = ''; 
+      
+      // Check if this specific user already has a booked slot on this date
+      const userAlreadyBooked = data.some(slot => slot.user_id === currentUserId && slot.status !== 'available');
+
       data.forEach(slot => {
         const div = document.createElement('div');
-        div.className = slot.status === 'available' ? 'slot' : 'slot locked';
-        div.innerText = slot.time_slot + (slot.status !== 'available' ? ' (Booked)' : '');
         
-        if(slot.status === 'available') {
-          div.onclick = () => confirmBooking(slot.id);
+        // Check if THIS is the slot the user booked
+        if (slot.user_id === currentUserId && slot.status !== 'available') {
+          div.className = 'slot my-booking';
+          div.innerText = slot.time_slot + ' (Your Booking)';
+          div.onclick = () => cancelMyBooking(slot.id); // They can click to cancel it
+        } 
+        // If it's booked by someone else
+        else if (slot.status !== 'available') {
+          div.className = 'slot locked';
+          div.innerText = slot.time_slot + ' (Booked)';
+        } 
+        // If it's available
+        else {
+          div.className = 'slot';
+          div.innerText = slot.time_slot;
+          div.onclick = () => {
+            if (userAlreadyBooked) {
+              alert('You already have a booking on this date! Please click your green slot to cancel it before selecting a new one.');
+            } else {
+              confirmBooking(slot.id);
+            }
+          };
         }
         container.appendChild(div);
       });
@@ -178,19 +195,34 @@
     async function confirmBooking(slotId) {
       if (!confirm(`Book this slot for ${currentName}?`)) return;
 
-      // Now it will correctly send the phone number to the Admin!
       const { error } = await supabaseClient
         .from('appointments')
-        .update({ status: 'booked', patient_name: currentName, phone: currentPhone })
+        .update({ status: 'booked', patient_name: currentName, phone: currentPhone, user_id: currentUserId })
         .eq('id', slotId);
       
       if(!error) {
-        alert('Booking Successful! We look forward to seeing you.');
         loadSlots(); 
       } else {
         alert('Database Error: ' + error.message);
         console.error(error);
         loadSlots();
+      }
+    }
+
+    // NEW: Let users cancel their own slot
+    async function cancelMyBooking(slotId) {
+      if (!confirm('Are you sure you want to cancel your appointment? This will release the slot for someone else.')) return;
+      
+      const { error } = await supabaseClient
+        .from('appointments')
+        .update({ status: 'available', patient_name: null, phone: null, user_id: null })
+        .eq('id', slotId);
+        
+      if(!error) {
+        alert('Appointment canceled successfully.');
+        loadSlots(); 
+      } else {
+        alert('Database Error: ' + error.message);
       }
     }
   </script>
