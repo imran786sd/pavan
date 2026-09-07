@@ -3,37 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dr. Pavan Kumar MSN</title>
+  <title>Dr. M. S. N. Pavan Kumar - Cardiology Clinic</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1a73e8">
   <style>
-    body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; }
-    .slot { background: #1a73e8; color: white; padding: 15px; margin: 10px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: bold;}
-    .locked { background: #ccc; cursor: not-allowed; }
+    body { 
+      font-family: system-ui, sans-serif; 
+      text-align: center; 
+      padding: 20px; 
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 { color: #2c3e50; font-size: 24px; margin-bottom: 5px; }
+    .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+    .slot { 
+      background: #1a73e8; 
+      color: white; 
+      padding: 15px 30px; 
+      margin: 10px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      display: inline-block; 
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+    .slot:hover { background: #1557b0; }
+    .locked { 
+      background: #bdc3c7; 
+      cursor: not-allowed; 
+      box-shadow: none;
+    }
+    .locked:hover { background: #bdc3c7; }
+    #error-msg { color: #e74c3c; font-weight: bold; margin-top: 20px; }
   </style>
+  
   <!-- Load Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <h1>Dr. M. S. N. Pavan Kumar
-Occupation: Sr. Consultant Interventional Cardiologist
-
-Qualifications: MD, DM (NIMS)</h1>
+  
+  <h1>Dr. M. S. N. Pavan Kumar</h1>
+  <div class="subtitle">
+    Sr. Consultant Interventional Cardiologist<br>
+    MD, DM (NIMS)
+  </div>
+  
   <p>Select a time for your appointment:</p>
   
   <div id="slots-container">Loading slots...</div>
+  <div id="error-msg"></div>
 
   <script>
     // Initialize Supabase
-    // Initialize Supabase
     const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
-    const supabaseKey = 'sb_publishable_pftNHgVcw025hBQ99stQ-Q_gbv1WawM';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-    async function loadSlots() {
-      const { data, error } = await supabase.from('appointments').select('*').order('time_slot');
-      const container = document.getElementById('slots-container');
-      container.innerHTML = ''; // Clear loading text
+    
+    // TOBI: PASTE YOUR LONG "anon public" KEY BELOW. IT MUST START WITH "eyJ..."
+    const supabaseKey = 'PASTE_YOUR_LONG_EYJ_ANON_KEY_HERE'; 
+    
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    async function loadSlots() {
+      const container = document.getElementById('slots-container');
+      const errorContainer = document.getElementById('error-msg');
+      
+      errorContainer.innerText = ''; // Clear previous errors
+      
+      // Fetch data from database
+      const { data, error } = await supabase.from('appointments').select('*').order('time_slot');
+      
+      // Check if Supabase rejected the connection
+      if (error) {
+        container.innerHTML = '';
+        errorContainer.innerText = `Database Error: ${error.message}`;
+        return;
+      }
+
+      // Check if the database is empty
+      if (!data || data.length === 0) {
+        container.innerHTML = '';
+        errorContainer.innerText = 'No slots found. Did you run the SQL INSERT command in Supabase?';
+        return;
+      }
+
+      // Draw the slots
+      container.innerHTML = ''; 
       data.forEach(slot => {
         const div = document.createElement('div');
         div.className = slot.status === 'available' ? 'slot' : 'slot locked';
@@ -47,7 +101,6 @@ Qualifications: MD, DM (NIMS)</h1>
     }
 
     async function lockSlot(id) {
-      // Update the database to 'locked'
       const { error } = await supabase
         .from('appointments')
         .update({ status: 'locked', locked_at: new Date().toISOString() })
@@ -55,13 +108,15 @@ Qualifications: MD, DM (NIMS)</h1>
       
       if(!error) {
         alert('Slot temporarily locked for you! Proceeding to details...');
-        loadSlots(); // Refresh the UI
+        loadSlots(); // Refresh the UI to show it as locked
       } else {
         alert('Sorry, someone else just grabbed this slot.');
+        loadSlots();
       }
     }
 
-    loadSlots(); // Run on page load
+    // Run when page loads
+    loadSlots(); 
   </script>
 </body>
 </html>
