@@ -37,7 +37,6 @@
     
     /* Login & Details Screens */
     .screen { display: none; background: white; padding: 30px; border-radius: 15px; margin: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
-    .active-screen { display: block; }
     input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
     .btn-primary { background: #1a73e8; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
     .btn-google { background: #fff; color: #444; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px;}
@@ -49,8 +48,8 @@
 </head>
 <body>
 
-  <!-- SCREEN 1: Login -->
-  <div id="screen-login" class="screen">
+  <!-- SCREEN 1: Login (Visible by default so it never flashes white) -->
+  <div id="screen-login" class="screen" style="display: block;">
     <h2>Dr. Pavan's Clinic</h2>
     <p>Please verify your identity to book a slot.</p>
     <button class="btn-google" onclick="loginWithGoogle()">
@@ -75,14 +74,9 @@
       <span>Appointment</span>
     </div>
     
-    <div class="date-header" id="month-label">August</div>
-    <div class="date-strip" id="date-strip">
-      <!-- Dates injected by JS -->
-    </div>
-
-    <div id="slots-container">
-      <!-- Slots injected by JS -->
-    </div>
+    <div class="date-header" id="month-label"></div>
+    <div class="date-strip" id="date-strip"></div>
+    <div id="slots-container"></div>
 
     <div class="bottom-bar" id="bottom-bar">
       <button class="btn-confirm" id="btn-confirm" onclick="executeBooking()" disabled>Confirm Appointment</button>
@@ -98,22 +92,24 @@
     let currentName = localStorage.getItem('clinic_name') || '';
     let currentPhone = localStorage.getItem('clinic_phone') || '';
     let currentUserId = null;
-    let selectedDate = new Date().toLocaleDateString('en-CA'); 
+    let cachedSlots = []; // Prevents flickering when selecting slots
     let selectedSlotIdToBook = null;
+
+    // Bulletproof Date Formatter (Forces YYYY-MM-DD on all devices)
+    function getFormatDate(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    let selectedDate = getFormatDate(new Date());
 
     function showScreen(screenId) {
       document.getElementById('screen-login').style.display = 'none';
       document.getElementById('screen-details').style.display = 'none';
       document.getElementById('screen-booking').style.display = 'none';
-      
-      if(screenId === 'screen-booking') {
-        document.getElementById('screen-booking').style.display = 'block';
-      } else {
-        document.getElementById(screenId).style.display = 'block';
-      }
+      document.getElementById(screenId).style.display = 'block';
     }
 
-    supabaseClient.auth.onAuthStateChange((event, session) => {
+    // Handles the login routing securely
+    function handleSession(session) {
       if (session) {
         currentUserId = session.user.id;
         const googleName = session.user.user_metadata.full_name;
@@ -133,7 +129,11 @@
         currentUserId = null;
         showScreen('screen-login');
       }
-    });
+    }
+
+    // Check instantly on load, then listen for changes
+    supabaseClient.auth.getSession().then(({ data: { session } }) => handleSession(session));
+    supabaseClient.auth.onAuthStateChange((event, session) => handleSession(session));
 
     async function loginWithGoogle() {
       const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -180,9 +180,9 @@
         let d = new Date();
         d.setDate(baseDate.getDate() + i);
         
-        const dateStr = d.toLocaleDateString('en-CA');
+        const dateStr = getFormatDate(d);
         const dayName = days[d.getDay()];
-        const dateNum = d.getDate().toString().padStart(2, '0');
+        const dateNum = String(d.getDate()).padStart(2, '0');
         
         if(dateStr === selectedDate) {
           document.getElementById('month-label').innerText = months[d.getMonth()] + ' ' + d.getFullYear();
@@ -218,7 +218,6 @@
     async function loadSlots() {
       const container = document.getElementById('slots-container');
       const bottomBar = document.getElementById('bottom-bar');
-      const confirmBtn = document.getElementById('btn-confirm');
       
       container.innerHTML = '<p id="empty-msg">Checking availability...</p>';
       bottomBar.style.display = 'none';
@@ -226,18 +225,30 @@
       const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', selectedDate).order('time_slot');
       
       if (error) return container.innerHTML = `<p id="empty-msg" style="color:red;">Database Error</p>`;
-      if (!data || data.length === 0) return container.innerHTML = '<p id="empty-msg">No slots created for this date.</p>';
+      
+      cachedSlots = data || [];
+      renderSlots();
+    }
+
+    // Instantly draws the slots without needing to talk to the database again
+    function renderSlots() {
+      const container = document.getElementById('slots-container');
+      const bottomBar = document.getElementById('bottom-bar');
+      const confirmBtn = document.getElementById('btn-confirm');
+      
+      if (cachedSlots.length === 0) {
+        container.innerHTML = '<p id="empty-msg">No slots created for this date.</p>';
+        bottomBar.style.display = 'none';
+        return;
+      }
 
       container.innerHTML = ''; 
       bottomBar.style.display = 'block'; 
-      confirmBtn.disabled = true; 
       
-      const userAlreadyBooked = data.some(slot => slot.user_id === currentUserId && slot.status !== 'available');
-
+      const userAlreadyBooked = cachedSlots.some(slot => slot.user_id === currentUserId && slot.status !== 'available');
       const groupedSlots = { 'Morning Slots': [], 'Afternoon Slots': [], 'Evening Slots': [] };
-      data.forEach(slot => { groupedSlots[getTimeCategory(slot.time_slot)].push(slot); });
+      cachedSlots.forEach(slot => { groupedSlots[getTimeCategory(slot.time_slot)].push(slot); });
 
-      // FIX: Corrected the loop syntax here to draw the UI properly
       for (const category in groupedSlots) {
         if (groupedSlots[category].length === 0) continue;
 
@@ -269,7 +280,7 @@
                 alert('You already have a booking on this date! Click your green slot to cancel it first.');
               } else {
                 selectedSlotIdToBook = slot.id;
-                loadSlots(); 
+                renderSlots(); // Instantly highlights the button
               }
             };
           }
@@ -318,8 +329,12 @@
         .update({ status: 'available', patient_name: null, phone: null, user_id: null })
         .eq('id', slotId);
         
-      if(!error) loadSlots(); 
-      else alert('Error: ' + error.message);
+      if(!error) {
+        selectedSlotIdToBook = null;
+        loadSlots(); 
+      } else {
+        alert('Error: ' + error.message);
+      }
     }
   </script>
 </body>
