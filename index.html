@@ -2,70 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dr. M. S. N. Pavan Kumar - Cardiology Clinic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Appointment - Dr. Pavan</title>
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#1a73e8">
+  <meta name="theme-color" content="#ffffff">
+  
   <style>
-    body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; max-width: 500px; margin: 0 auto; }
-    h1 { color: #2c3e50; font-size: 24px; margin-bottom: 5px; }
-    .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
     
-    .screen { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .active-screen { display: block; }
+    body { font-family: 'Inter', sans-serif; background-color: #333; margin: 0; padding: 0; }
     
-    input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+    .mobile-wrapper { max-width: 414px; margin: 0 auto; background-color: #f0f4fd; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); padding-bottom: 90px; }
+
+    /* Header & Calendar View */
+    .header-section { background-color: #ffffff; padding: 20px 20px 15px 20px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+    .app-bar { display: flex; align-items: center; gap: 15px; font-weight: 700; font-size: 18px; color: #111; margin-bottom: 25px; }
+    .back-btn { font-size: 22px; cursor: pointer; color: #555; }
+    .month-selector { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
     
-    button { background: #1a73e8; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; }
-    button:hover { background: #1557b0; }
+    .date-strip { display: flex; overflow-x: auto; gap: 10px; scrollbar-width: none; }
+    .date-strip::-webkit-scrollbar { display: none; }
+    .date-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 55px; height: 70px; min-width: 55px; border-radius: 14px; cursor: pointer; transition: 0.2s; background: transparent; }
+    .date-item .day { font-size: 12px; font-weight: 600; color: #888; margin-bottom: 4px; }
+    .date-item .num { font-size: 16px; font-weight: 700; color: #111; }
+    .date-item.active { background-color: #2558d6; box-shadow: 0 4px 10px rgba(37,88,214,0.3); }
+    .date-item.active .day, .date-item.active .num { color: #ffffff; }
+
+    /* Time Splits */
+    .slots-section { padding: 10px 20px 20px 20px; }
+    .section-title { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 12px; margin-top: 20px; }
+    .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .slot { background-color: #ffffff; color: #333; font-size: 12px; font-weight: 600; padding: 12px 0; text-align: center; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.03); transition: 0.2s; }
+    .slot.selected { background-color: #2558d6; color: #ffffff; box-shadow: 0 4px 10px rgba(37,88,214,0.3); }
+    .slot.locked { opacity: 0.5; background: #e0e0e0; cursor: not-allowed; color: #777; box-shadow: none; }
+    .slot.my-booking { background-color: #27ae60; color: #ffffff; }
+    .empty-category { font-size: 13px; color: #777; font-weight: 600; }
     
-    .btn-google { background: #fff; color: #444; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .btn-google:hover { background: #f1f1f1; }
-    .btn-google img { width: 20px; }
+    /* Bottom Bar */
+    .bottom-bar { position: absolute; bottom: 0; width: 100%; background: #ffffff; padding: 20px; box-sizing: border-box; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); border-top-left-radius: 24px; border-top-right-radius: 24px; display: none; }
+    .btn-confirm { background-color: #2558d6; color: #ffffff; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; }
+    .btn-confirm:disabled { background-color: #b0c4f5; cursor: not-allowed; }
     
-    .btn-logout { background: transparent; color: #e74c3c; border: 1px solid #e74c3c; margin-top: 20px; }
-    .btn-logout:hover { background: #e74c3c; color: white; }
-    
-    .date-picker-container { margin-bottom: 20px; }
-    
-    /* Slot Colors */
-    .slot { background: #1a73e8; color: white; padding: 15px 20px; margin: 8px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: bold; }
-    .locked { background: #bdc3c7; cursor: not-allowed; }
-    .my-booking { background: #27ae60; } /* Green for user's own booking */
-    .my-booking:hover { background: #219653; }
+    /* Screens */
+    .screen { display: none; padding: 40px 20px; text-align: center; background: #fff; min-height: 100vh; box-sizing: border-box; }
+    input { width: 100%; padding: 14px; margin: 10px 0 20px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; font-family: 'Inter', sans-serif;}
+    .btn-primary { background: #2558d6; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
+    .btn-google { background: #fff; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 15px;}
+    .btn-logout { background: transparent; color: #e74c3c; border: none; margin-top: 20px; font-weight: bold; cursor: pointer; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  
-  <h1>Dr. M. S. N. Pavan Kumar</h1>
-  <div class="subtitle">Sr. Consultant Interventional Cardiologist<br>MD, DM (NIMS)</div>
 
-  <div id="screen-login" class="screen">
-    <h3>Step 1: Verification</h3>
-    <p>Please verify your identity to book a slot.</p>
-    <button class="btn-google" onclick="loginWithGoogle()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
-      Sign in with Google
-    </button>
-  </div>
-
-  <div id="screen-details" class="screen">
-    <h3>Step 2: Patient Details</h3>
-    <input type="text" id="patient-name" placeholder="Full Name">
-    <input type="tel" id="patient-phone" placeholder="Phone Number">
-    <button onclick="saveDetails()">Continue to Calendar</button>
-    <button class="btn-logout" onclick="logout()">Sign Out</button>
-  </div>
-
-  <div id="screen-booking" class="screen">
-    <h3>Step 3: Select Appointment</h3>
-    <div class="date-picker-container">
-      <label><strong>Date: </strong></label>
-      <input type="date" id="appointment-date" onchange="loadSlots()">
+  <div class="mobile-wrapper">
+    <!-- SCREEN 1: Login -->
+    <div id="screen-login" class="screen" style="display: block;">
+      <h2>Dr. Pavan's Clinic</h2>
+      <p>Please verify your identity to book a slot.</p>
+      <button class="btn-google" onclick="loginWithGoogle()">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="20">
+        Sign in with Google
+      </button>
     </div>
-    <div id="slots-container">Loading calendar...</div>
-    <button class="btn-logout" onclick="logout()">Sign Out</button>
+
+    <!-- SCREEN 2: Details -->
+    <div id="screen-details" class="screen">
+      <h2>Patient Details</h2>
+      <input type="text" id="patient-name" placeholder="Full Name">
+      <input type="tel" id="patient-phone" placeholder="Phone Number">
+      <button class="btn-primary" onclick="saveDetails()">Continue to Booking</button>
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+
+    <!-- SCREEN 3: Calendar & Booking UI -->
+    <div id="screen-booking" style="display: none;">
+      
+      <!-- The White Header Block with Calendar -->
+      <div class="header-section">
+        <div class="app-bar">
+          <span class="back-btn" onclick="logout()">←</span>
+          <span>Appointment</span>
+        </div>
+        <div class="month-selector" id="month-label">August ▾</div>
+        <div class="date-strip" id="date-strip"></div>
+      </div>
+
+      <!-- The Light Blue Slots Area -->
+      <div class="slots-section" id="slots-container"></div>
+
+      <!-- The White Bottom Bar -->
+      <div class="bottom-bar" id="bottom-bar">
+        <button class="btn-confirm" id="btn-confirm" onclick="executeBooking()" disabled>Confirm Appointment</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -76,16 +105,25 @@
 
     let currentName = localStorage.getItem('clinic_name') || '';
     let currentPhone = localStorage.getItem('clinic_phone') || '';
-    let currentUserId = null; // NEW: Track the logged-in user
+    let currentUserId = null;
+    let cachedSlots = []; 
+    let selectedSlotIdToBook = null;
+
+    function getFormatDate(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    let selectedDate = getFormatDate(new Date());
 
     function showScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-      document.getElementById(screenId).classList.add('active-screen');
+      document.getElementById('screen-login').style.display = 'none';
+      document.getElementById('screen-details').style.display = 'none';
+      document.getElementById('screen-booking').style.display = 'none';
+      document.getElementById(screenId).style.display = 'block';
     }
 
-    supabaseClient.auth.onAuthStateChange((event, session) => {
+    function handleSession(session) {
       if (session) {
-        currentUserId = session.user.id; // Get secure Google ID
+        currentUserId = session.user.id;
         const googleName = session.user.user_metadata.full_name;
         if (googleName && !currentName) currentName = googleName;
         
@@ -93,12 +131,8 @@
         document.getElementById('patient-phone').value = currentPhone;
 
         if (currentName && currentPhone) {
-          const dateInput = document.getElementById('appointment-date');
-          const today = new Date().toLocaleDateString('en-CA'); 
-          dateInput.min = today;
-          if (!dateInput.value) dateInput.value = today;
-          
           showScreen('screen-booking');
+          renderDateStrip();
           loadSlots();
         } else {
           showScreen('screen-details'); 
@@ -107,123 +141,189 @@
         currentUserId = null;
         showScreen('screen-login');
       }
-    });
+    }
+
+    supabaseClient.auth.getSession().then(({ data: { session } }) => handleSession(session));
+    supabaseClient.auth.onAuthStateChange((event, session) => handleSession(session));
 
     async function loginWithGoogle() {
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: 'https://imran786sd.github.io/pavan/' }
-      });
+      const { error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://imran786sd.github.io/pavan/' } });
       if (error) alert("Error logging in: " + error.message);
     }
 
     async function logout() {
-      const { error } = await supabaseClient.auth.signOut();
-      if (!error) {
-        localStorage.removeItem('clinic_name');
-        localStorage.removeItem('clinic_phone');
-        currentName = ''; currentPhone = ''; currentUserId = null;
-        document.getElementById('patient-name').value = '';
-        document.getElementById('patient-phone').value = '';
-      }
+      await supabaseClient.auth.signOut();
+      localStorage.removeItem('clinic_name');
+      localStorage.removeItem('clinic_phone');
+      currentName = ''; currentPhone = ''; currentUserId = null;
     }
 
     function saveDetails() {
       const nameInput = document.getElementById('patient-name').value;
       const phoneInput = document.getElementById('patient-phone').value;
-      
-      if (!nameInput || !phoneInput) return alert('Please enter both your name and phone number.');
+      if (!nameInput || !phoneInput) return alert('Please enter both details.');
       
       localStorage.setItem('clinic_name', nameInput);
       localStorage.setItem('clinic_phone', phoneInput);
       currentName = nameInput; currentPhone = phoneInput;
       
-      const dateInput = document.getElementById('appointment-date');
-      const today = new Date().toLocaleDateString('en-CA'); 
-      dateInput.min = today;
-      if (!dateInput.value) dateInput.value = today;
-      
       showScreen('screen-booking');
+      renderDateStrip();
       loadSlots();
+    }
+
+    function renderDateStrip() {
+      const strip = document.getElementById('date-strip');
+      strip.innerHTML = '';
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      let baseDate = new Date();
+      
+      for(let i=0; i<14; i++) {
+        let d = new Date();
+        d.setDate(baseDate.getDate() + i);
+        
+        const dateStr = getFormatDate(d);
+        const dayName = days[d.getDay()];
+        const dateNum = String(d.getDate()).padStart(2, '0');
+        
+        if(dateStr === selectedDate) {
+          document.getElementById('month-label').innerText = months[d.getMonth()] + ' ' + d.getFullYear() + ' ▾';
+        }
+
+        const div = document.createElement('div');
+        div.className = dateStr === selectedDate ? 'date-item active' : 'date-item';
+        div.innerHTML = `<span class="day">${dayName}</span><span class="num">${dateNum}</span>`;
+        
+        div.onclick = () => {
+          selectedDate = dateStr;
+          selectedSlotIdToBook = null; 
+          renderDateStrip(); 
+          loadSlots();
+        };
+        
+        strip.appendChild(div);
+      }
+    }
+
+    function getTimeCategory(timeStr) {
+      const isPM = timeStr.includes('PM');
+      let hour = parseInt(timeStr.split(':')[0]);
+      if (isPM && hour !== 12) hour += 12;
+      if (!isPM && hour === 12) hour = 0;
+
+      if (hour < 12) return 'Morning Slots';
+      if (hour >= 12 && hour < 16) return 'Afternoon Slots';
+      return 'Evening Slots';
     }
 
     async function loadSlots() {
       const container = document.getElementById('slots-container');
-      const dateInput = document.getElementById('appointment-date').value;
+      container.innerHTML = '<div class="empty-category" style="text-align:center; margin-top:20px;">Checking database...</div>';
       
-      container.innerHTML = 'Checking availability...';
+      const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', selectedDate).order('time_slot');
+      if (error) return container.innerHTML = `<div class="empty-category" style="color:red; text-align:center;">Database Error</div>`;
       
-      const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', dateInput).order('time_slot');
-      if (error) return container.innerHTML = `<span style="color:red;">Database Error</span>`;
-      if (!data || data.length === 0) return container.innerHTML = 'No slots available for this date.';
-
-      container.innerHTML = ''; 
-      
-      // Check if this specific user already has a booked slot on this date
-      const userAlreadyBooked = data.some(slot => slot.user_id === currentUserId && slot.status !== 'available');
-
-      data.forEach(slot => {
-        const div = document.createElement('div');
-        
-        // Check if THIS is the slot the user booked
-        if (slot.user_id === currentUserId && slot.status !== 'available') {
-          div.className = 'slot my-booking';
-          div.innerText = slot.time_slot + ' (Your Booking)';
-          div.onclick = () => cancelMyBooking(slot.id); // They can click to cancel it
-        } 
-        // If it's booked by someone else
-        else if (slot.status !== 'available') {
-          div.className = 'slot locked';
-          div.innerText = slot.time_slot + ' (Booked)';
-        } 
-        // If it's available
-        else {
-          div.className = 'slot';
-          div.innerText = slot.time_slot;
-          div.onclick = () => {
-            if (userAlreadyBooked) {
-              alert('You already have a booking on this date! Please click your green slot to cancel it before selecting a new one.');
-            } else {
-              confirmBooking(slot.id);
-            }
-          };
-        }
-        container.appendChild(div);
-      });
+      cachedSlots = data || [];
+      renderSlots();
     }
 
-    async function confirmBooking(slotId) {
-      if (!confirm(`Book this slot for ${currentName}?`)) return;
+    function renderSlots() {
+      const container = document.getElementById('slots-container');
+      const bottomBar = document.getElementById('bottom-bar');
+      const confirmBtn = document.getElementById('btn-confirm');
+      
+      container.innerHTML = ''; 
+      bottomBar.style.display = 'block'; 
+      
+      const userAlreadyBooked = cachedSlots.some(slot => slot.user_id === currentUserId && slot.status !== 'available');
+      
+      // We explicitly define all three categories so they ALWAYS draw on the screen
+      const groupedSlots = { 'Morning Slots': [], 'Afternoon Slots': [], 'Evening Slots': [] };
+      cachedSlots.forEach(slot => { groupedSlots[getTimeCategory(slot.time_slot)].push(slot); });
 
-      const { error } = await supabaseClient
-        .from('appointments')
-        .update({ status: 'booked', patient_name: currentName, phone: currentPhone, user_id: currentUserId })
-        .eq('id', slotId);
+      for (const category in groupedSlots) {
+        // Draw the Header (Morning, Afternoon, or Evening)
+        const title = document.createElement('div');
+        title.className = 'section-title';
+        title.innerText = category;
+        container.appendChild(title);
+
+        // If there are no slots in this category, print "No slots available"
+        if (groupedSlots[category].length === 0) {
+          const emptyText = document.createElement('div');
+          emptyText.className = 'empty-category';
+          emptyText.innerText = 'No slots available for this time.';
+          container.appendChild(emptyText);
+          continue;
+        }
+
+        // If there ARE slots, draw the white pills
+        const grid = document.createElement('div');
+        grid.className = 'slots-grid';
+
+        groupedSlots[category].forEach(slot => {
+          const div = document.createElement('div');
+          
+          if (slot.user_id === currentUserId && slot.status !== 'available') {
+            div.className = 'slot my-booking';
+            div.innerText = slot.time_slot;
+            div.onclick = () => cancelMyBooking(slot.id); 
+          } 
+          else if (slot.status !== 'available') {
+            div.className = 'slot locked';
+            div.innerText = slot.time_slot;
+          } 
+          else {
+            div.className = slot.id === selectedSlotIdToBook ? 'slot selected' : 'slot';
+            div.innerText = slot.time_slot;
+            div.onclick = () => {
+              if (userAlreadyBooked) {
+                alert('You already have a booking on this date! Click your green slot to cancel it first.');
+              } else {
+                selectedSlotIdToBook = slot.id;
+                renderSlots(); 
+              }
+            };
+          }
+          grid.appendChild(div);
+        });
+        container.appendChild(grid);
+      }
+      
+      if (selectedSlotIdToBook) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = "Confirm Appointment";
+      } else {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Select a time slot";
+      }
+    }
+
+    async function executeBooking() {
+      if (!selectedSlotIdToBook) return;
+      const confirmBtn = document.getElementById('btn-confirm');
+      confirmBtn.innerText = "Booking...";
+      confirmBtn.disabled = true;
+
+      const { error } = await supabaseClient.from('appointments').update({ status: 'booked', patient_name: currentName, phone: currentPhone, user_id: currentUserId }).eq('id', selectedSlotIdToBook);
       
       if(!error) {
+        selectedSlotIdToBook = null; 
+        alert('Booking Successful!');
         loadSlots(); 
       } else {
-        alert('Database Error: ' + error.message);
-        console.error(error);
+        alert('Error: ' + error.message);
+        selectedSlotIdToBook = null;
         loadSlots();
       }
     }
 
-    // NEW: Let users cancel their own slot
     async function cancelMyBooking(slotId) {
-      if (!confirm('Are you sure you want to cancel your appointment? This will release the slot for someone else.')) return;
-      
-      const { error } = await supabaseClient
-        .from('appointments')
-        .update({ status: 'available', patient_name: null, phone: null, user_id: null })
-        .eq('id', slotId);
-        
-      if(!error) {
-        alert('Appointment canceled successfully.');
-        loadSlots(); 
-      } else {
-        alert('Database Error: ' + error.message);
-      }
+      if (!confirm('Cancel your appointment? This will release the slot.')) return;
+      const { error } = await supabaseClient.from('appointments').update({ status: 'available', patient_name: null, phone: null, user_id: null }).eq('id', slotId);
+      if(!error) { selectedSlotIdToBook = null; loadSlots(); } else { alert('Error: ' + error.message); }
     }
   </script>
 </body>
