@@ -23,6 +23,10 @@
     .btn-google:hover { background: #f1f1f1; }
     .btn-google img { width: 20px; }
     
+    /* Logout Button Styling */
+    .btn-logout { background: transparent; color: #e74c3c; border: 1px solid #e74c3c; margin-top: 20px; }
+    .btn-logout:hover { background: #e74c3c; color: white; }
+    
     .date-picker-container { margin-bottom: 20px; }
     .slot { background: #1a73e8; color: white; padding: 15px 20px; margin: 8px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: bold; }
     .locked { background: #bdc3c7; cursor: not-allowed; }
@@ -52,6 +56,7 @@
     <input type="text" id="patient-name" placeholder="Full Name">
     <input type="tel" id="patient-phone" placeholder="Phone Number">
     <button onclick="saveDetails()">Continue to Calendar</button>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
   </div>
 
   <!-- SCREEN 3: Calendar -->
@@ -62,6 +67,7 @@
       <input type="date" id="appointment-date" onchange="loadSlots()">
     </div>
     <div id="slots-container">Loading calendar...</div>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
   </div>
 
   <script>
@@ -78,24 +84,20 @@
       document.getElementById(screenId).classList.add('active-screen');
     }
 
-    // On Page Load: Check if the user is already logged in
     async function checkSession() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       
       if (session) {
-        // User is logged in! Pre-fill their name from Google
         const googleName = session.user.user_metadata.full_name;
-        if(googleName) {
+        if(googleName && !document.getElementById('patient-name').value) {
           document.getElementById('patient-name').value = googleName;
         }
         showScreen('screen-details');
       } else {
-        // User is NOT logged in
         showScreen('screen-login');
       }
     }
 
-    // Trigger the Google Login popup
     async function loginWithGoogle() {
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
@@ -104,6 +106,23 @@
         }
       });
       if (error) alert("Error logging in: " + error.message);
+    }
+
+    // NEW: Logout Function
+    async function logout() {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        alert("Error signing out: " + error.message);
+      } else {
+        // Clear the local variables and form inputs
+        currentName = '';
+        currentPhone = '';
+        document.getElementById('patient-name').value = '';
+        document.getElementById('patient-phone').value = '';
+        
+        // Send user back to the login screen
+        showScreen('screen-login');
+      }
     }
 
     function saveDetails() {
@@ -165,7 +184,6 @@
       }
     }
 
-    // Run the session check when the page opens
     checkSession();
   </script>
 </body>
