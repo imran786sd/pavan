@@ -16,6 +16,11 @@
     }
     h1 { color: #2c3e50; font-size: 24px; margin-bottom: 5px; }
     .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+    
+    /* Date Picker Styling */
+    .date-picker-container { margin-bottom: 20px; }
+    input[type="date"] { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
+    
     .slot { 
       background: #1a73e8; 
       color: white; 
@@ -29,12 +34,10 @@
       transition: background 0.3s;
     }
     .slot:hover { background: #1557b0; }
-    .locked { 
-      background: #bdc3c7; 
-      cursor: not-allowed; 
-      box-shadow: none;
-    }
+    .locked { background: #bdc3c7; cursor: not-allowed; box-shadow: none; }
     .locked:hover { background: #bdc3c7; }
+    .my-locked { background: #27ae60; } /* Turns green for the slot YOU clicked */
+    .my-locked:hover { background: #219653; }
     #error-msg { color: #e74c3c; font-weight: bold; margin-top: 20px; }
   </style>
   
@@ -48,29 +51,47 @@
     Sr. Consultant Interventional Cardiologist<br>
     MD, DM (NIMS)
   </div>
+
+  <!-- NEW: Date Picker -->
+  <div class="date-picker-container">
+    <label for="appointment-date"><strong>Select Date: </strong></label>
+    <input type="date" id="appointment-date" onchange="loadSlots()">
+  </div>
   
-  <p>Select a time for your appointment:</p>
+  <p>Available times:</p>
   
   <div id="slots-container">Loading slots...</div>
   <div id="error-msg"></div>
 
   <script>
-    // Initialize Supabase
     const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
-    
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cmd0eXliaHlwYWp1dWp5YXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Nzk2MTksImV4cCI6MjEwNDM1NTYxOX0.mLh5sblYrOKjoey_LWcmUS4NQrqXrEyDzrDB6yWAKUE'; 
-    
-    // CHANGED: supabase to supabaseClient
+    // TOBI: PASTE YOUR LONG KEY HERE!
+    const supabaseKey = 'PASTE_YOUR_LONG_EYJ_ANON_KEY_HERE'; 
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // LOGIC 1: Prevent multiple clicks
+    let myLockedSlotId = null;
+
+    // LOGIC 2: Block past dates by setting the minimum date to Today
+    const dateInput = document.getElementById('appointment-date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today; // Blocks past dates
+    dateInput.value = today; // Defaults to today
 
     async function loadSlots() {
       const container = document.getElementById('slots-container');
       const errorContainer = document.getElementById('error-msg');
+      const selectedDate = dateInput.value;
       
-      errorContainer.innerText = ''; // Clear previous errors
+      errorContainer.innerText = ''; 
+      container.innerHTML = 'Checking availability...';
       
-      // CHANGED: supabase to supabaseClient
-      const { data, error } = await supabaseClient.from('appointments').select('*').order('time_slot');
+      // Fetch data only for the selected date
+      const { data, error } = await supabaseClient
+        .from('appointments')
+        .select('*')
+        .eq('date', selectedDate)
+        .order('time_slot');
       
       if (error) {
         container.innerHTML = '';
@@ -79,18 +100,24 @@
       }
 
       if (!data || data.length === 0) {
-        container.innerHTML = '';
-        errorContainer.innerText = 'No slots found. Did you run the SQL INSERT command in Supabase?';
+        container.innerHTML = 'No slots available for this date.';
         return;
       }
 
       container.innerHTML = ''; 
       data.forEach(slot => {
         const div = document.createElement('div');
-        div.className = slot.status === 'available' ? 'slot' : 'slot locked';
-        div.innerText = slot.time_slot + (slot.status !== 'available' ? ' (Locked)' : '');
         
-        if(slot.status === 'available') {
+        // Check if this is the slot the user just clicked
+        if (slot.id === myLockedSlotId) {
+          div.className = 'slot my-locked';
+          div.innerText = slot.time_slot + ' (Selected)';
+        } else {
+          div.className = slot.status === 'available' ? 'slot' : 'slot locked';
+          div.innerText = slot.time_slot + (slot.status !== 'available' ? ' (Locked)' : '');
+        }
+        
+        if(slot.status === 'available' && slot.id !== myLockedSlotId) {
           div.onclick = () => lockSlot(slot.id);
         }
         container.appendChild(div);
@@ -98,15 +125,20 @@
     }
 
     async function lockSlot(id) {
-      // CHANGED: supabase to supabaseClient
+      // Check if the user already clicked a slot
+      if (myLockedSlotId !== null) {
+        alert('You can only select one slot per day! Please refresh the page if you want to change it.');
+        return;
+      }
+
       const { error } = await supabaseClient
         .from('appointments')
         .update({ status: 'locked', locked_at: new Date().toISOString() })
         .eq('id', id);
       
       if(!error) {
-        alert('Slot temporarily locked for you! Proceeding to details...');
-        loadSlots(); 
+        myLockedSlotId = id; // Remember that THIS user locked THIS slot
+        loadSlots(); // Refresh the UI (it will turn green)
       } else {
         alert('Sorry, someone else just grabbed this slot.');
         loadSlots();
