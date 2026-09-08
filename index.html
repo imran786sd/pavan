@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Appointment - Dr. Pavan</title>
+  <title>Dr. Pavan - Cardiology</title>
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#ffffff">
   
@@ -12,9 +12,29 @@
     
     body { font-family: 'Inter', sans-serif; background-color: #333; margin: 0; padding: 0; }
     
-    .mobile-wrapper { max-width: 414px; margin: 0 auto; background-color: #f0f4fd; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); padding-bottom: 90px; }
+    .mobile-wrapper { max-width: 414px; margin: 0 auto; background-color: #f0f4fd; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); padding-bottom: 90px; overflow-x: hidden; }
 
-    /* Header & Calendar View */
+    /* --- PROFILE SCREEN STYLING --- */
+    .profile-header-bg { background: #2558d6; height: 120px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; position: absolute; top: 0; width: 100%; z-index: 0; }
+    .profile-card { background: #fff; padding: 25px 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin: 60px 20px 20px 20px; position: relative; z-index: 1; text-align: center; }
+    .profile-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-top: -65px; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #fff; }
+    .doc-name { font-size: 22px; font-weight: 700; color: #111; margin: 10px 0 4px 0; }
+    .doc-title { font-size: 14px; color: #2558d6; font-weight: 600; margin: 0 0 15px 0; }
+    .doc-desc { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 25px; padding: 0 10px; }
+
+    /* Action Buttons (Call, Maps, WhatsApp, Share) */
+    .action-row { display: flex; justify-content: space-between; padding: 0 10px; margin-bottom: 10px; }
+    .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; color: #333; }
+    .action-icon { width: 50px; height: 50px; border-radius: 50%; background: #eef2f9; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.2s; }
+    .action-item:hover .action-icon { background: #2558d6; color: white; }
+    .action-label { font-size: 12px; font-weight: 600; color: #555; }
+
+    .stats-row { display: flex; justify-content: space-around; margin: 20px 20px; background: #fff; padding: 15px; border-radius: 16px; position: relative; z-index: 1; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+    .stat { text-align: center; }
+    .stat-val { font-size: 18px; font-weight: 700; color: #111; }
+    .stat-label { font-size: 12px; color: #777; font-weight: 600; margin-top: 4px; }
+
+    /* --- HEADER & CALENDAR VIEW --- */
     .header-section { background-color: #ffffff; padding: 20px 20px 15px 20px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
     .app-bar { display: flex; align-items: center; gap: 15px; font-weight: 700; font-size: 18px; color: #111; margin-bottom: 25px; }
     .back-btn { font-size: 22px; cursor: pointer; color: #555; }
@@ -28,7 +48,7 @@
     .date-item.active { background-color: #2558d6; box-shadow: 0 4px 10px rgba(37,88,214,0.3); }
     .date-item.active .day, .date-item.active .num { color: #ffffff; }
 
-    /* Time Splits */
+    /* --- TIME SPLITS --- */
     .slots-section { padding: 10px 20px 20px 20px; }
     .section-title { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 12px; margin-top: 20px; }
     .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -38,13 +58,14 @@
     .slot.my-booking { background-color: #27ae60; color: #ffffff; }
     .empty-category { font-size: 13px; color: #777; font-weight: 600; }
     
-    /* Bottom Bar */
-    .bottom-bar { position: absolute; bottom: 0; width: 100%; background: #ffffff; padding: 20px; box-sizing: border-box; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); border-top-left-radius: 24px; border-top-right-radius: 24px; display: none; }
+    /* --- BOTTOM BAR --- */
+    .bottom-bar { position: absolute; bottom: 0; width: 100%; background: #ffffff; padding: 20px; box-sizing: border-box; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); border-top-left-radius: 24px; border-top-right-radius: 24px; display: none; z-index: 10; }
     .btn-confirm { background-color: #2558d6; color: #ffffff; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; }
     .btn-confirm:disabled { background-color: #b0c4f5; cursor: not-allowed; }
     
-    /* Screens */
-    .screen { display: none; padding: 40px 20px; text-align: center; background: #fff; min-height: 100vh; box-sizing: border-box; }
+    /* --- SCREENS --- */
+    .screen { display: none; min-height: 100vh; box-sizing: border-box; }
+    .padded-screen { padding: 40px 20px; text-align: center; background: #fff; }
     input { width: 100%; padding: 14px; margin: 10px 0 20px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; font-family: 'Inter', sans-serif;}
     .btn-primary { background: #2558d6; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
     .btn-google { background: #fff; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 15px;}
@@ -56,41 +77,99 @@
 
   <div class="mobile-wrapper">
     <!-- SCREEN 1: Login -->
-    <div id="screen-login" class="screen" style="display: block;">
+    <div id="screen-login" class="screen padded-screen" style="display: block;">
       <h2>Dr. Pavan's Clinic</h2>
-      <p>Please verify your identity to book a slot.</p>
+      <p>Please verify your identity to continue.</p>
       <button class="btn-google" onclick="loginWithGoogle()">
         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="20">
         Sign in with Google
       </button>
     </div>
 
-    <!-- SCREEN 2: Details -->
-    <div id="screen-details" class="screen">
-      <h2>Patient Details</h2>
-      <input type="text" id="patient-name" placeholder="Full Name">
-      <input type="tel" id="patient-phone" placeholder="Phone Number">
-      <button class="btn-primary" onclick="saveDetails()">Continue to Booking</button>
-      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    <!-- SCREEN 2: DOCTOR PROFILE (NEW) -->
+    <div id="screen-profile" class="screen">
+      <div class="profile-header-bg"></div>
+      
+      <div class="profile-card">
+        <!-- Generic Doctor Icon (Can replace src with actual photo later) -->
+        <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" alt="Dr. Pavan" class="profile-img">
+        <h2 class="doc-name">Dr. M. S. N. Pavan Kumar</h2>
+        <p class="doc-title">Sr. Interventional Cardiologist</p>
+        <p class="doc-desc">MD, DM (NIMS). Expert in cardiac care, angiograms, and angioplasty.</p>
+        
+        <div class="action-row">
+          <!-- MAPS LINK (Will open Google Maps, Ola, or Uber options on mobile) -->
+          <a href="https://maps.google.com/?q=Cardiology+Clinic,+Pothepalle,+Andhra+Pradesh,+India" target="_blank" class="action-item">
+            <div class="action-icon">📍</div>
+            <span class="action-label">Navigate</span>
+          </a>
+          
+          <!-- CALL LINK -->
+          <a href="tel:+919876543210" class="action-item">
+            <div class="action-icon">📞</div>
+            <span class="action-label">Call</span>
+          </a>
+          
+          <!-- WHATSAPP MESSAGE LINK -->
+          <a href="https://wa.me/919876543210?text=Hello%20Dr.%20Pavan%20Clinic," target="_blank" class="action-item">
+            <div class="action-icon">💬</div>
+            <span class="action-label">Message</span>
+          </a>
+          
+          <!-- SHARE APP LINK -->
+          <div class="action-item" onclick="shareApp()">
+            <div class="action-icon">🔗</div>
+            <span class="action-label">Share</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-val">15+</div>
+          <div class="stat-label">Years Exp.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">4.9⭐</div>
+          <div class="stat-label">Rating</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">1000+</div>
+          <div class="stat-label">Patients</div>
+        </div>
+      </div>
+
+      <div style="padding: 20px;">
+        <button class="btn-confirm" onclick="proceedToBooking()" style="display:block;">Book Appointment</button>
+        <div style="text-align: center;">
+          <button class="btn-logout" onclick="logout()">Sign Out</button>
+        </div>
+      </div>
     </div>
 
-    <!-- SCREEN 3: Calendar & Booking UI -->
-    <div id="screen-booking" style="display: none;">
-      
-      <!-- The White Header Block with Calendar -->
+    <!-- SCREEN 3: Patient Details (Only shown if missing phone number) -->
+    <div id="screen-details" class="screen padded-screen">
+      <h2>Patient Details</h2>
+      <p>We need your number to confirm the booking.</p>
+      <input type="text" id="patient-name" placeholder="Full Name">
+      <input type="tel" id="patient-phone" placeholder="Phone Number">
+      <button class="btn-primary" onclick="saveDetails()">Continue to Calendar</button>
+      <button class="btn-logout" onclick="showScreen('screen-profile')">Cancel</button>
+    </div>
+
+    <!-- SCREEN 4: Calendar & Booking UI -->
+    <div id="screen-booking" class="screen">
       <div class="header-section">
         <div class="app-bar">
-          <span class="back-btn" onclick="showScreen('screen-details')">←</span>
-          <span>Appointment</span>
+          <span class="back-btn" onclick="showScreen('screen-profile')">←</span>
+          <span>Select Time</span>
         </div>
         <div class="month-selector" id="month-label">August ▾</div>
         <div class="date-strip" id="date-strip"></div>
       </div>
 
-      <!-- The Light Blue Slots Area -->
       <div class="slots-section" id="slots-container"></div>
 
-      <!-- The White Bottom Bar -->
       <div class="bottom-bar" id="bottom-bar">
         <button class="btn-confirm" id="btn-confirm" onclick="executeBooking()" disabled>Confirm Appointment</button>
       </div>
@@ -115,9 +194,7 @@
     let selectedDate = getFormatDate(new Date());
 
     function showScreen(screenId) {
-      document.getElementById('screen-login').style.display = 'none';
-      document.getElementById('screen-details').style.display = 'none';
-      document.getElementById('screen-booking').style.display = 'none';
+      document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
       document.getElementById(screenId).style.display = 'block';
     }
 
@@ -125,25 +202,18 @@
       if (session) {
         currentUserId = session.user.id;
         
-        // Pull details securely from Supabase's permanent user database first!
         const meta = session.user.user_metadata;
         const dbName = meta.full_name;
         const dbPhone = meta.phone_number; 
 
-        // If Supabase knows them, use that. Otherwise, check temporary memory.
         if (dbName && !currentName) currentName = dbName;
         if (dbPhone && !currentPhone) currentPhone = dbPhone;
         
         document.getElementById('patient-name').value = currentName;
         document.getElementById('patient-phone').value = currentPhone;
 
-        if (currentName && currentPhone) {
-          showScreen('screen-booking');
-          renderDateStrip();
-          loadSlots();
-        } else {
-          showScreen('screen-details'); 
-        }
+        // ALWAYS show the beautiful profile page first after login!
+        showScreen('screen-profile');
       } else {
         currentUserId = null;
         showScreen('screen-login');
@@ -165,22 +235,40 @@
       currentName = ''; currentPhone = ''; currentUserId = null;
     }
 
+    // Handles the "Book Appointment" button on the profile page
+    function proceedToBooking() {
+      if (currentName && currentPhone) {
+        showScreen('screen-booking');
+        renderDateStrip();
+        loadSlots();
+      } else {
+        showScreen('screen-details'); 
+      }
+    }
+
+    // Native Web Share API
+    function shareApp() {
+      if (navigator.share) {
+        navigator.share({
+          title: 'Dr. M.S.N. Pavan Kumar - Cardiology',
+          text: 'Book your cardiac consultation instantly through the app:',
+          url: window.location.href,
+        }).catch(console.error);
+      } else {
+        alert('Copy this link to share: ' + window.location.href);
+      }
+    }
+
     async function saveDetails() {
       const nameInput = document.getElementById('patient-name').value;
       const phoneInput = document.getElementById('patient-phone').value;
-      
       if (!nameInput || !phoneInput) return alert('Please enter both details.');
       
-      // 1. Save to Supabase Profile PERMANENTLY across all devices
-      await supabaseClient.auth.updateUser({
-        data: { phone_number: phoneInput }
-      });
+      await supabaseClient.auth.updateUser({ data: { phone_number: phoneInput } });
       
-      // 2. Also save locally for instant loading
       localStorage.setItem('clinic_name', nameInput);
       localStorage.setItem('clinic_phone', phoneInput);
-      currentName = nameInput; 
-      currentPhone = phoneInput;
+      currentName = nameInput; currentPhone = phoneInput;
       
       showScreen('screen-booking');
       renderDateStrip();
@@ -235,7 +323,10 @@
 
     async function loadSlots() {
       const container = document.getElementById('slots-container');
+      const bottomBar = document.getElementById('bottom-bar');
+      
       container.innerHTML = '<div class="empty-category" style="text-align:center; margin-top:20px;">Checking database...</div>';
+      bottomBar.style.display = 'none';
       
       const { data, error } = await supabaseClient.from('appointments').select('*').eq('date', selectedDate).order('time_slot');
       if (error) return container.innerHTML = `<div class="empty-category" style="color:red; text-align:center;">Database Error</div>`;
@@ -253,19 +344,15 @@
       bottomBar.style.display = 'block'; 
       
       const userAlreadyBooked = cachedSlots.some(slot => slot.user_id === currentUserId && slot.status !== 'available');
-      
-      // We explicitly define all three categories so they ALWAYS draw on the screen
       const groupedSlots = { 'Morning Slots': [], 'Afternoon Slots': [], 'Evening Slots': [] };
       cachedSlots.forEach(slot => { groupedSlots[getTimeCategory(slot.time_slot)].push(slot); });
 
       for (const category in groupedSlots) {
-        // Draw the Header (Morning, Afternoon, or Evening)
         const title = document.createElement('div');
         title.className = 'section-title';
         title.innerText = category;
         container.appendChild(title);
 
-        // If there are no slots in this category, print "No slots available"
         if (groupedSlots[category].length === 0) {
           const emptyText = document.createElement('div');
           emptyText.className = 'empty-category';
@@ -274,7 +361,6 @@
           continue;
         }
 
-        // If there ARE slots, draw the white pills
         const grid = document.createElement('div');
         grid.className = 'slots-grid';
 
