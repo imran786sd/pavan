@@ -80,7 +80,7 @@
       <!-- The White Header Block with Calendar -->
       <div class="header-section">
         <div class="app-bar">
-          <span class="back-btn" onclick="logout()">←</span>
+          <span class="back-btn" onclick="showScreen('screen-details')">←</span>
           <span>Appointment</span>
         </div>
         <div class="month-selector" id="month-label">August ▾</div>
@@ -124,8 +124,15 @@
     function handleSession(session) {
       if (session) {
         currentUserId = session.user.id;
-        const googleName = session.user.user_metadata.full_name;
-        if (googleName && !currentName) currentName = googleName;
+        
+        // Pull details securely from Supabase's permanent user database first!
+        const meta = session.user.user_metadata;
+        const dbName = meta.full_name;
+        const dbPhone = meta.phone_number; 
+
+        // If Supabase knows them, use that. Otherwise, check temporary memory.
+        if (dbName && !currentName) currentName = dbName;
+        if (dbPhone && !currentPhone) currentPhone = dbPhone;
         
         document.getElementById('patient-name').value = currentName;
         document.getElementById('patient-phone').value = currentPhone;
@@ -158,14 +165,22 @@
       currentName = ''; currentPhone = ''; currentUserId = null;
     }
 
-    function saveDetails() {
+    async function saveDetails() {
       const nameInput = document.getElementById('patient-name').value;
       const phoneInput = document.getElementById('patient-phone').value;
+      
       if (!nameInput || !phoneInput) return alert('Please enter both details.');
       
+      // 1. Save to Supabase Profile PERMANENTLY across all devices
+      await supabaseClient.auth.updateUser({
+        data: { phone_number: phoneInput }
+      });
+      
+      // 2. Also save locally for instant loading
       localStorage.setItem('clinic_name', nameInput);
       localStorage.setItem('clinic_phone', phoneInput);
-      currentName = nameInput; currentPhone = phoneInput;
+      currentName = nameInput; 
+      currentPhone = phoneInput;
       
       showScreen('screen-booking');
       renderDateStrip();
