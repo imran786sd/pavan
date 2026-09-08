@@ -38,13 +38,18 @@
     .booking-tab { padding: 10px 15px; font-size: 14px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; }
     .booking-tab.active { color: #2558d6; border-bottom: 3px solid #2558d6; }
     
-    .booking-card { background: #fff; padding: 18px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 15px; text-align: left; }
-    .bc-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 12px; }
-    .bc-doc { font-weight: 700; color: #111; font-size: 15px; }
-    .bc-tag { background: #eef2f9; color: #2558d6; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; }
-    .bc-details { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 15px; }
-    .bc-strong { color: #111; font-weight: 700; }
-    .btn-cancel-slot { width: 100%; padding: 10px; background: #ffebeb; color: #e74c3c; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .booking-card { background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 15px; text-align: left; }
+    .bc-header { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; }
+    .bc-img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
+    .bc-doc-info { flex-grow: 1; }
+    .bc-doc { font-weight: 700; color: #111; font-size: 16px; margin-bottom: 3px; }
+    .bc-tag { font-size: 12px; color: #666; font-weight: 600; }
+    
+    .bc-time-box { background: #f8f9fa; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .bc-date-info { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #333; }
+    
+    .btn-cancel-slot { width: 100%; padding: 12px; background: #ffebeb; color: #e74c3c; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .btn-review-slot { width: 100%; padding: 12px; background: #eef2f9; color: #2558d6; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
 
     /* --- HEADER & CALENDAR VIEW --- */
     .header-section { background-color: #ffffff; padding: 20px 20px 15px 20px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
@@ -74,7 +79,7 @@
     .success-icon { font-size: 60px; margin-bottom: 10px; }
     .success-title { font-size: 24px; font-weight: 700; color: #27ae60; margin-bottom: 5px; }
     .success-text { font-size: 14px; color: #666; margin-bottom: 30px; }
-    .ticket-card { background: #f9fbff; border: 1px dashed #2558d6; padding: 20px; border-radius: 16px; margin-bottom: 30px; text-align: left; }
+    .ticket-card { background: #f9fbff; border: 1px dashed #2558d6; padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: left; }
     .ticket-row { display: flex; justify-content: space-between; margin-bottom: 15px; }
     .ticket-row:last-child { margin-bottom: 0; }
     .ticket-label { font-size: 12px; color: #777; font-weight: 600; margin-bottom: 4px; }
@@ -93,7 +98,7 @@
     /* --- SCREENS --- */
     .screen { display: none; min-height: 100vh; box-sizing: border-box; }
     .padded-screen { padding: 40px 20px; text-align: center; background: #fff; }
-    input { width: 100%; padding: 14px; margin: 10px 0 20px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; font-family: 'Inter', sans-serif;}
+    input, select { width: 100%; padding: 14px; margin: 10px 0 20px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; font-family: 'Inter', sans-serif;}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -164,7 +169,7 @@
       </div>
     </div>
 
-    <!-- SCREEN 3: MY BOOKINGS (NEW) -->
+    <!-- SCREEN 3: MY BOOKINGS -->
     <div id="screen-my-bookings" class="screen">
       <div class="header-section" style="border-radius: 0 0 24px 24px; padding-bottom: 0;">
         <div class="app-bar" style="margin-bottom: 10px;">
@@ -174,7 +179,6 @@
         <div class="tabs-row">
           <div class="booking-tab active" onclick="switchBookingTab('upcoming', this)">Upcoming</div>
           <div class="booking-tab" onclick="switchBookingTab('completed', this)">Completed</div>
-          <div class="booking-tab" onclick="switchBookingTab('cancelled', this)">Cancelled</div>
         </div>
       </div>
       <div id="my-bookings-container" style="padding: 20px;">
@@ -182,12 +186,20 @@
       </div>
     </div>
 
-    <!-- SCREEN 4: Patient Details -->
+    <!-- SCREEN 4: Patient Details (Added Gender) -->
     <div id="screen-details" class="screen padded-screen">
       <h2>Patient Details</h2>
-      <p>We need your number to confirm the booking.</p>
+      <p>Please complete your profile to confirm.</p>
       <input type="text" id="patient-name" placeholder="Full Name">
       <input type="tel" id="patient-phone" placeholder="Phone Number">
+      
+      <select id="patient-gender">
+        <option value="" disabled selected>Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+
       <button class="btn-primary" onclick="saveDetails()">Continue to Calendar</button>
       <button class="btn-logout" onclick="showScreen('screen-profile')">Cancel</button>
     </div>
@@ -240,6 +252,10 @@
           </div>
         </div>
         
+        <a id="btn-add-calendar" target="_blank" style="text-decoration: none;">
+          <button class="btn-secondary" style="margin-bottom: 20px;">📅 Add to Google Calendar</button>
+        </a>
+        
         <button class="btn-primary" onclick="showScreen('screen-profile')">Back to Home</button>
       </div>
     </div>
@@ -254,6 +270,7 @@
 
     let currentName = localStorage.getItem('clinic_name') || '';
     let currentPhone = localStorage.getItem('clinic_phone') || '';
+    let currentGender = localStorage.getItem('clinic_gender') || '';
     let currentUserId = null;
     let cachedSlots = []; 
     let selectedSlotIdToBook = null;
@@ -280,6 +297,7 @@
         
         document.getElementById('patient-name').value = currentName;
         document.getElementById('patient-phone').value = currentPhone;
+        document.getElementById('patient-gender').value = currentGender;
 
         showScreen('screen-profile');
       } else {
@@ -300,11 +318,12 @@
       await supabaseClient.auth.signOut();
       localStorage.removeItem('clinic_name');
       localStorage.removeItem('clinic_phone');
-      currentName = ''; currentPhone = ''; currentUserId = null;
+      localStorage.removeItem('clinic_gender');
+      currentName = ''; currentPhone = ''; currentGender = ''; currentUserId = null;
     }
 
     function proceedToBooking() {
-      if (currentName && currentPhone) {
+      if (currentName && currentPhone && currentGender) {
         showScreen('screen-booking');
         renderDateStrip();
         loadSlots();
@@ -328,13 +347,19 @@
     async function saveDetails() {
       const nameInput = document.getElementById('patient-name').value;
       const phoneInput = document.getElementById('patient-phone').value;
-      if (!nameInput || !phoneInput) return alert('Please enter both details.');
+      const genderInput = document.getElementById('patient-gender').value;
+      
+      if (!nameInput || !phoneInput || !genderInput) return alert('Please complete all details.');
       
       await supabaseClient.auth.updateUser({ data: { phone_number: phoneInput } });
       
       localStorage.setItem('clinic_name', nameInput);
       localStorage.setItem('clinic_phone', phoneInput);
-      currentName = nameInput; currentPhone = phoneInput;
+      localStorage.setItem('clinic_gender', genderInput);
+      
+      currentName = nameInput; 
+      currentPhone = phoneInput; 
+      currentGender = genderInput;
       
       showScreen('screen-booking');
       renderDateStrip();
@@ -365,7 +390,7 @@
         .from('appointments')
         .select('*')
         .eq('user_id', currentUserId)
-        .order('date', { ascending: true }); // Sorts by date
+        .order('date', { ascending: true });
         
       if (error) {
         container.innerHTML = `<div class="empty-category" style="color:red; text-align:center;">Database Error</div>`;
@@ -381,42 +406,52 @@
       
       const today = getFormatDate(new Date());
 
-      if (currentBookingTab === 'cancelled') {
-        container.innerHTML = '<div class="empty-category" style="text-align:center;">No cancelled appointments to show.<br><br><span style="font-size:11px;">(When you cancel an appointment, the system permanently removes your details so the slot can be given to another patient).</span></div>';
-        return;
-      }
-
       let filtered = myBookingsCache.filter(b => {
         if (currentBookingTab === 'upcoming') return b.date >= today;
         if (currentBookingTab === 'completed') return b.date < today;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-category" style="text-align:center;">You have no ${currentBookingTab} bookings.</div>`;
+        container.innerHTML = `<div class="empty-category" style="text-align:center; padding-top:20px;">You have no ${currentBookingTab} bookings.</div>`;
         return;
       }
 
       filtered.forEach(b => {
-        // Format date for the card
         const [yyyy, mm, dd] = b.date.split('-');
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const niceDate = `${months[parseInt(mm)-1]} ${parseInt(dd)}, ${yyyy}`;
 
         const card = document.createElement('div');
         card.className = 'booking-card';
+        
+        let actionButton = '';
+        if (currentBookingTab === 'upcoming') {
+          actionButton = `<button class="btn-cancel-slot" onclick="cancelMyBooking('${b.id}', '${b.date}', '${b.time_slot}', true)">Cancel Appointment</button>`;
+        } else {
+          actionButton = `<button class="btn-review-slot" onclick="leaveReview()">⭐ Leave a Review</button>`;
+        }
+
         card.innerHTML = `
           <div class="bc-header">
-            <div class="bc-doc">Dr. Pavan Kumar</div>
-            <div class="bc-tag">Cardiologist</div>
+            <img src="https://kaminenihospitals.com/wp-content/uploads/2023/08/Dr.-M.-S.-N.-Pavan-Kumar.jpg" class="bc-img">
+            <div class="bc-doc-info">
+              <div class="bc-doc">Dr. Pavan Kumar</div>
+              <div class="bc-tag">Cardiologist</div>
+            </div>
           </div>
-          <div class="bc-details">
-            <div>📅 <span class="bc-strong">${niceDate}</span></div>
-            <div>⏰ <span class="bc-strong">${b.time_slot}</span></div>
+          <div class="bc-time-box">
+            <div class="bc-date-info">📅 ${niceDate}</div>
+            <div class="bc-date-info">⏰ ${b.time_slot}</div>
           </div>
-          ${currentBookingTab === 'upcoming' ? `<button class="btn-cancel-slot" onclick="cancelMyBooking('${b.id}', true)">Cancel Appointment</button>` : ''}
+          ${actionButton}
         `;
         container.appendChild(card);
       });
+    }
+
+    function leaveReview() {
+      alert("Thank you! We will redirect you to the clinic's Google Reviews page.");
+      // You can swap the alert with: window.open('YOUR_GOOGLE_BUSINESS_LINK', '_blank');
     }
     // -------------------------
 
@@ -515,7 +550,7 @@
           if (slot.user_id === currentUserId && slot.status !== 'available') {
             div.className = 'slot my-booking';
             div.innerText = slot.time_slot;
-            div.onclick = () => cancelMyBooking(slot.id, false); 
+            div.onclick = () => cancelMyBooking(slot.id, slot.date, slot.time_slot, false); 
           } 
           else if (slot.status !== 'available') {
             div.className = 'slot locked';
@@ -547,6 +582,24 @@
       }
     }
 
+    // Google Calendar URL Generator
+    function generateGoogleCalLink(dateStr, timeStr) {
+      const [yyyy, mm, dd] = dateStr.split('-');
+      const [time, modifier] = timeStr.split(' ');
+      let [hours, minutes] = time.split(':');
+      
+      if (hours === '12') hours = '00';
+      if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+      
+      // We pass local time formats and let Google Calendar handle the timezone interpretation
+      const startDate = new Date(yyyy, mm - 1, dd, hours, minutes);
+      const endDate = new Date(startDate.getTime() + 30 * 60000); // Assumes 30 min slot
+      
+      const formatString = (d) => d.toISOString().replace(/-|:|\.\d+/g, '');
+      
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Dr.+Pavan+-+Cardiology+Consultation&dates=${formatString(startDate)}/${formatString(endDate)}&details=Appointment+booked+via+App&location=Kamineni+Hospitals,+Vijayawada`;
+    }
+
     async function executeBooking() {
       if (!selectedSlotIdToBook) return;
       const confirmBtn = document.getElementById('btn-confirm');
@@ -556,7 +609,10 @@
       const slotElement = cachedSlots.find(s => s.id === selectedSlotIdToBook);
       const bookedTime = slotElement ? slotElement.time_slot : '';
 
-      const { error } = await supabaseClient.from('appointments').update({ status: 'booked', patient_name: currentName, phone: currentPhone, user_id: currentUserId }).eq('id', selectedSlotIdToBook);
+      // Include Gender in the update query
+      const { error } = await supabaseClient.from('appointments')
+        .update({ status: 'booked', patient_name: currentName, phone: currentPhone, gender: currentGender, user_id: currentUserId })
+        .eq('id', selectedSlotIdToBook);
       
       if(!error) {
         const [yyyy, mm, dd] = selectedDate.split('-');
@@ -566,6 +622,9 @@
         document.getElementById('success-date').innerText = niceDate;
         document.getElementById('success-time').innerText = bookedTime;
         document.getElementById('success-name').innerText = currentName;
+
+        // Set the dynamic Google Calendar Link
+        document.getElementById('btn-add-calendar').href = generateGoogleCalLink(selectedDate, bookedTime);
 
         selectedSlotIdToBook = null; 
         showScreen('screen-success');
@@ -577,17 +636,33 @@
       }
     }
 
-    // Handles canceling from both the Calendar View and the "My Bookings" Tab
-    async function cancelMyBooking(slotId, fromMyBookings = false) {
-      if (!confirm('Cancel your appointment? This will release the slot.')) return;
-      const { error } = await supabaseClient.from('appointments').update({ status: 'available', patient_name: null, phone: null, user_id: null }).eq('id', slotId);
+    async function cancelMyBooking(slotId, slotDate, slotTime, fromMyBookings = false) {
+      // Prompt user for cancellation reason
+      const reason = prompt('Are you sure you want to cancel? Please provide a brief reason (e.g., Sick, Schedule Conflict):');
+      
+      if (reason === null) return; // User clicked "Cancel" on the prompt box
+      
+      // 1. Log the reason into the new cancellations table
+      await supabaseClient.from('cancellations').insert([{
+        patient_name: currentName,
+        phone: currentPhone,
+        user_id: currentUserId,
+        date: slotDate,
+        time_slot: slotTime,
+        reason: reason || 'No reason provided'
+      }]);
+
+      // 2. Free up the slot in the appointments table
+      const { error } = await supabaseClient.from('appointments')
+        .update({ status: 'available', patient_name: null, phone: null, gender: null, user_id: null })
+        .eq('id', slotId);
       
       if(!error) { 
         selectedSlotIdToBook = null; 
         if (fromMyBookings) {
-          loadMyBookings(); // Refreshes the My Bookings list instantly
+          loadMyBookings(); 
         } else {
-          loadSlots(); // Refreshes the Calendar instantly
+          loadSlots(); 
         }
       } else { 
         alert('Error: ' + error.message); 
