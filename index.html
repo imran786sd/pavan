@@ -116,6 +116,18 @@
     .btn-secondary { background: #eef2f9; color: #2558d6; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 12px; }
     .btn-google { background: #fff; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 15px;}
     
+    /* --- NEW: BOTTOM NAVIGATION BAR --- */
+    .bottom-nav-bar { 
+      position: absolute; bottom: 0; width: 100%; background: #ffffff; 
+      display: flex; justify-content: space-around; padding: 15px 0 25px 0; 
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.04); border-top-left-radius: 24px; border-top-right-radius: 24px; 
+      z-index: 100; display: none; 
+    }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #999; cursor: pointer; transition: 0.2s; width: 70px; }
+    .nav-item.active { color: #2558d6; }
+    .nav-icon { font-size: 24px; }
+    .nav-text { font-size: 11px; font-weight: 600; }
+
     /* --- SCREENS --- */
     .screen { display: none; min-height: 100vh; box-sizing: border-box; }
     .padded-screen { padding: 40px 20px; text-align: center; background: #fff; }
@@ -189,15 +201,14 @@
 
       <div style="padding: 0 20px 20px 20px;">
         <button class="btn-confirm" onclick="proceedToBooking()" style="display:block;">Book Appointment</button>
-        <button class="btn-secondary" onclick="openMyBookings()">View My Bookings</button>
       </div>
     </div>
 
-    <!-- SCREEN 3: PATIENT SETTINGS PROFILE (NEW) -->
+    <!-- SCREEN 3: PATIENT SETTINGS PROFILE -->
     <div id="screen-user-settings" class="screen" style="background-color: #fff;">
       <div class="header-section" style="border-radius: 0 0 24px 24px; padding-bottom: 10px; box-shadow: none;">
         <div class="app-bar" style="margin-bottom: 0;">
-          <span class="back-btn" onclick="showScreen('screen-profile')">←</span>
+          <span style="visibility:hidden;" class="back-btn">←</span>
           <span>Profile</span>
         </div>
       </div>
@@ -252,7 +263,6 @@
           <div class="settings-arrow">›</div>
         </div>
         
-        <!-- THE MOVED LOGOUT BUTTON -->
         <div class="settings-item logout-item" onclick="logout()">
           <div class="settings-item-left">
             <div class="settings-icon">🚪</div>
@@ -267,7 +277,7 @@
     <div id="screen-my-bookings" class="screen">
       <div class="header-section" style="border-radius: 0 0 24px 24px; padding-bottom: 0;">
         <div class="app-bar" style="margin-bottom: 10px;">
-          <span class="back-btn" onclick="showScreen('screen-profile')">←</span>
+          <span style="visibility:hidden;" class="back-btn">←</span>
           <span>My Bookings</span>
         </div>
         <div class="tabs-row">
@@ -356,6 +366,22 @@
       </div>
     </div>
 
+    <!-- MAIN APP BOTTOM NAVIGATION BAR -->
+    <div class="bottom-nav-bar" id="main-bottom-nav">
+      <div class="nav-item active" id="nav-btn-home" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">🏠</div>
+        <div class="nav-text">Home</div>
+      </div>
+      <div class="nav-item" id="nav-btn-bookings" onclick="openMyBookings()">
+        <div class="nav-icon">📅</div>
+        <div class="nav-text">Bookings</div>
+      </div>
+      <div class="nav-item" id="nav-btn-profile" onclick="showScreen('screen-user-settings')">
+        <div class="nav-icon">👤</div>
+        <div class="nav-text">Profile</div>
+      </div>
+    </div>
+
   </div> <!-- End Mobile Wrapper -->
 
   <script>
@@ -377,8 +403,26 @@
     let selectedDate = getFormatDate(new Date());
 
     function showScreen(screenId) {
+      // Hide all screens
       document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+      // Show selected screen
       document.getElementById(screenId).style.display = 'block';
+      
+      // Control Bottom Navigation Bar Visibility
+      const navBar = document.getElementById('main-bottom-nav');
+      const mainScreens = ['screen-profile', 'screen-my-bookings', 'screen-user-settings'];
+      
+      if (mainScreens.includes(screenId)) {
+        navBar.style.display = 'flex';
+      } else {
+        navBar.style.display = 'none';
+      }
+
+      // Update Active Status on Nav Icons
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (screenId === 'screen-profile') document.getElementById('nav-btn-home').classList.add('active');
+      if (screenId === 'screen-my-bookings') document.getElementById('nav-btn-bookings').classList.add('active');
+      if (screenId === 'screen-user-settings') document.getElementById('nav-btn-profile').classList.add('active');
     }
 
     function handleSession(session) {
@@ -388,19 +432,16 @@
         const dbName = meta.full_name;
         const dbPhone = meta.phone_number; 
         
-        // Grab Google Profile Picture & Email for the settings page
         const dbAvatar = meta.avatar_url || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
         const dbEmail = session.user.email || '';
 
         if (dbName && !currentName) currentName = dbName;
         if (dbPhone && !currentPhone) currentPhone = dbPhone;
         
-        // Populate inputs
         document.getElementById('patient-name').value = currentName;
         document.getElementById('patient-phone').value = currentPhone;
         document.getElementById('patient-gender').value = currentGender;
         
-        // Populate User Settings Screen dynamically
         document.getElementById('nav-user-avatar').src = dbAvatar;
         document.getElementById('settings-avatar').src = dbAvatar;
         document.getElementById('settings-name').innerText = currentName || 'Patient';
@@ -468,7 +509,6 @@
       currentPhone = phoneInput; 
       currentGender = genderInput;
       
-      // Update the Settings Screen with the new details
       document.getElementById('settings-name').innerText = currentName;
       document.getElementById('settings-contact').innerText = currentPhone;
       
