@@ -33,6 +33,19 @@
     .stat-val { font-size: 18px; font-weight: 700; color: #111; }
     .stat-label { font-size: 12px; color: #777; font-weight: 600; margin-top: 4px; }
 
+    /* --- MY BOOKINGS SCREEN --- */
+    .tabs-row { display: flex; justify-content: space-around; margin-top: 15px; border-bottom: 1px solid #eee; }
+    .booking-tab { padding: 10px 15px; font-size: 14px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; }
+    .booking-tab.active { color: #2558d6; border-bottom: 3px solid #2558d6; }
+    
+    .booking-card { background: #fff; padding: 18px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 15px; text-align: left; }
+    .bc-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 12px; }
+    .bc-doc { font-weight: 700; color: #111; font-size: 15px; }
+    .bc-tag { background: #eef2f9; color: #2558d6; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; }
+    .bc-details { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 15px; }
+    .bc-strong { color: #111; font-weight: 700; }
+    .btn-cancel-slot { width: 100%; padding: 10px; background: #ffebeb; color: #e74c3c; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
+
     /* --- HEADER & CALENDAR VIEW --- */
     .header-section { background-color: #ffffff; padding: 20px 20px 15px 20px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
     .app-bar { display: flex; align-items: center; gap: 15px; font-weight: 700; font-size: 18px; color: #111; margin-bottom: 25px; }
@@ -67,18 +80,20 @@
     .ticket-label { font-size: 12px; color: #777; font-weight: 600; margin-bottom: 4px; }
     .ticket-val { font-size: 15px; color: #111; font-weight: 700; }
 
-    /* --- BOTTOM BAR --- */
+    /* --- BUTTONS & BARS --- */
     .bottom-bar { position: absolute; bottom: 0; width: 100%; background: #ffffff; padding: 20px; box-sizing: border-box; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); border-top-left-radius: 24px; border-top-right-radius: 24px; display: none; z-index: 10; }
     .btn-confirm { background-color: #2558d6; color: #ffffff; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; }
     .btn-confirm:disabled { background-color: #b0c4f5; cursor: not-allowed; }
+    
+    .btn-primary { background: #2558d6; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
+    .btn-secondary { background: #eef2f9; color: #2558d6; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 12px; }
+    .btn-google { background: #fff; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 15px;}
+    .btn-logout { background: transparent; color: #e74c3c; border: none; margin-top: 20px; font-weight: bold; cursor: pointer; }
     
     /* --- SCREENS --- */
     .screen { display: none; min-height: 100vh; box-sizing: border-box; }
     .padded-screen { padding: 40px 20px; text-align: center; background: #fff; }
     input { width: 100%; padding: 14px; margin: 10px 0 20px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; font-family: 'Inter', sans-serif;}
-    .btn-primary { background: #2558d6; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; }
-    .btn-google { background: #fff; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 15px;}
-    .btn-logout { background: transparent; color: #e74c3c; border: none; margin-top: 20px; font-weight: bold; cursor: pointer; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -140,15 +155,34 @@
         </div>
       </div>
 
-      <div style="padding: 20px;">
+      <div style="padding: 0 20px 20px 20px;">
         <button class="btn-confirm" onclick="proceedToBooking()" style="display:block;">Book Appointment</button>
+        <button class="btn-secondary" onclick="openMyBookings()">View My Bookings</button>
         <div style="text-align: center;">
           <button class="btn-logout" onclick="logout()">Sign Out</button>
         </div>
       </div>
     </div>
 
-    <!-- SCREEN 3: Patient Details -->
+    <!-- SCREEN 3: MY BOOKINGS (NEW) -->
+    <div id="screen-my-bookings" class="screen">
+      <div class="header-section" style="border-radius: 0 0 24px 24px; padding-bottom: 0;">
+        <div class="app-bar" style="margin-bottom: 10px;">
+          <span class="back-btn" onclick="showScreen('screen-profile')">←</span>
+          <span>My Bookings</span>
+        </div>
+        <div class="tabs-row">
+          <div class="booking-tab active" onclick="switchBookingTab('upcoming', this)">Upcoming</div>
+          <div class="booking-tab" onclick="switchBookingTab('completed', this)">Completed</div>
+          <div class="booking-tab" onclick="switchBookingTab('cancelled', this)">Cancelled</div>
+        </div>
+      </div>
+      <div id="my-bookings-container" style="padding: 20px;">
+        <!-- Booking Cards injected here -->
+      </div>
+    </div>
+
+    <!-- SCREEN 4: Patient Details -->
     <div id="screen-details" class="screen padded-screen">
       <h2>Patient Details</h2>
       <p>We need your number to confirm the booking.</p>
@@ -158,7 +192,7 @@
       <button class="btn-logout" onclick="showScreen('screen-profile')">Cancel</button>
     </div>
 
-    <!-- SCREEN 4: Calendar & Booking UI -->
+    <!-- SCREEN 5: Calendar & Booking UI -->
     <div id="screen-booking" class="screen">
       <div class="header-section">
         <div class="app-bar">
@@ -174,7 +208,7 @@
       </div>
     </div>
 
-    <!-- SCREEN 5: Booking Success (NEW) -->
+    <!-- SCREEN 6: Booking Success -->
     <div id="screen-success" class="screen padded-screen">
       <div style="margin-top: 40px;">
         <div class="success-icon">✅</div>
@@ -307,6 +341,85 @@
       loadSlots();
     }
 
+    // --- MY BOOKINGS LOGIC ---
+    let currentBookingTab = 'upcoming';
+    let myBookingsCache = [];
+
+    function openMyBookings() {
+      showScreen('screen-my-bookings');
+      loadMyBookings();
+    }
+
+    function switchBookingTab(tabName, element) {
+      currentBookingTab = tabName;
+      document.querySelectorAll('.booking-tab').forEach(t => t.classList.remove('active'));
+      element.classList.add('active');
+      renderMyBookings();
+    }
+
+    async function loadMyBookings() {
+      const container = document.getElementById('my-bookings-container');
+      container.innerHTML = '<div class="empty-category" style="text-align:center;">Fetching your bookings...</div>';
+      
+      const { data, error } = await supabaseClient
+        .from('appointments')
+        .select('*')
+        .eq('user_id', currentUserId)
+        .order('date', { ascending: true }); // Sorts by date
+        
+      if (error) {
+        container.innerHTML = `<div class="empty-category" style="color:red; text-align:center;">Database Error</div>`;
+      } else {
+        myBookingsCache = data || [];
+        renderMyBookings();
+      }
+    }
+
+    function renderMyBookings() {
+      const container = document.getElementById('my-bookings-container');
+      container.innerHTML = '';
+      
+      const today = getFormatDate(new Date());
+
+      if (currentBookingTab === 'cancelled') {
+        container.innerHTML = '<div class="empty-category" style="text-align:center;">No cancelled appointments to show.<br><br><span style="font-size:11px;">(When you cancel an appointment, the system permanently removes your details so the slot can be given to another patient).</span></div>';
+        return;
+      }
+
+      let filtered = myBookingsCache.filter(b => {
+        if (currentBookingTab === 'upcoming') return b.date >= today;
+        if (currentBookingTab === 'completed') return b.date < today;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-category" style="text-align:center;">You have no ${currentBookingTab} bookings.</div>`;
+        return;
+      }
+
+      filtered.forEach(b => {
+        // Format date for the card
+        const [yyyy, mm, dd] = b.date.split('-');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const niceDate = `${months[parseInt(mm)-1]} ${parseInt(dd)}, ${yyyy}`;
+
+        const card = document.createElement('div');
+        card.className = 'booking-card';
+        card.innerHTML = `
+          <div class="bc-header">
+            <div class="bc-doc">Dr. Pavan Kumar</div>
+            <div class="bc-tag">Cardiologist</div>
+          </div>
+          <div class="bc-details">
+            <div>📅 <span class="bc-strong">${niceDate}</span></div>
+            <div>⏰ <span class="bc-strong">${b.time_slot}</span></div>
+          </div>
+          ${currentBookingTab === 'upcoming' ? `<button class="btn-cancel-slot" onclick="cancelMyBooking('${b.id}', true)">Cancel Appointment</button>` : ''}
+        `;
+        container.appendChild(card);
+      });
+    }
+    // -------------------------
+
     function renderDateStrip() {
       const strip = document.getElementById('date-strip');
       strip.innerHTML = '';
@@ -402,7 +515,7 @@
           if (slot.user_id === currentUserId && slot.status !== 'available') {
             div.className = 'slot my-booking';
             div.innerText = slot.time_slot;
-            div.onclick = () => cancelMyBooking(slot.id); 
+            div.onclick = () => cancelMyBooking(slot.id, false); 
           } 
           else if (slot.status !== 'available') {
             div.className = 'slot locked';
@@ -440,29 +553,22 @@
       confirmBtn.innerText = "Booking...";
       confirmBtn.disabled = true;
 
-      // Find the booked time string before modifying the database
       const slotElement = cachedSlots.find(s => s.id === selectedSlotIdToBook);
       const bookedTime = slotElement ? slotElement.time_slot : '';
 
       const { error } = await supabaseClient.from('appointments').update({ status: 'booked', patient_name: currentName, phone: currentPhone, user_id: currentUserId }).eq('id', selectedSlotIdToBook);
       
       if(!error) {
-        // Format the date nicely for the ticket (e.g. "Sep 8, 2026")
         const [yyyy, mm, dd] = selectedDate.split('-');
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const niceDate = `${months[parseInt(mm)-1]} ${parseInt(dd)}, ${yyyy}`;
         
-        // Populate the Success Screen
         document.getElementById('success-date').innerText = niceDate;
         document.getElementById('success-time').innerText = bookedTime;
         document.getElementById('success-name').innerText = currentName;
 
         selectedSlotIdToBook = null; 
-        
-        // Show Success Screen instead of popup alert
         showScreen('screen-success');
-        
-        // Reload slots quietly in the background
         loadSlots(); 
       } else {
         alert('Error: ' + error.message);
@@ -471,10 +577,21 @@
       }
     }
 
-    async function cancelMyBooking(slotId) {
+    // Handles canceling from both the Calendar View and the "My Bookings" Tab
+    async function cancelMyBooking(slotId, fromMyBookings = false) {
       if (!confirm('Cancel your appointment? This will release the slot.')) return;
       const { error } = await supabaseClient.from('appointments').update({ status: 'available', patient_name: null, phone: null, user_id: null }).eq('id', slotId);
-      if(!error) { selectedSlotIdToBook = null; loadSlots(); } else { alert('Error: ' + error.message); }
+      
+      if(!error) { 
+        selectedSlotIdToBook = null; 
+        if (fromMyBookings) {
+          loadMyBookings(); // Refreshes the My Bookings list instantly
+        } else {
+          loadSlots(); // Refreshes the Calendar instantly
+        }
+      } else { 
+        alert('Error: ' + error.message); 
+      }
     }
   </script>
 </body>
