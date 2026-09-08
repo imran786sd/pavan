@@ -20,9 +20,8 @@
     .profile-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-top: -65px; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #fff; }
     .doc-name { font-size: 22px; font-weight: 700; color: #111; margin: 10px 0 4px 0; }
     .doc-title { font-size: 14px; color: #2558d6; font-weight: 600; margin: 0 0 15px 0; }
-    .doc-desc { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 25px; padding: 0 10px; }
+    .doc-desc { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 25px; padding: 0 10px; text-align: left;}
 
-    /* Action Buttons (Call, Maps, WhatsApp, Share) */
     .action-row { display: flex; justify-content: space-between; padding: 0 10px; margin-bottom: 10px; }
     .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; color: #333; }
     .action-icon { width: 50px; height: 50px; border-radius: 50%; background: #eef2f9; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.2s; }
@@ -58,6 +57,16 @@
     .slot.my-booking { background-color: #27ae60; color: #ffffff; }
     .empty-category { font-size: 13px; color: #777; font-weight: 600; }
     
+    /* --- SUCCESS SCREEN TICKET --- */
+    .success-icon { font-size: 60px; margin-bottom: 10px; }
+    .success-title { font-size: 24px; font-weight: 700; color: #27ae60; margin-bottom: 5px; }
+    .success-text { font-size: 14px; color: #666; margin-bottom: 30px; }
+    .ticket-card { background: #f9fbff; border: 1px dashed #2558d6; padding: 20px; border-radius: 16px; margin-bottom: 30px; text-align: left; }
+    .ticket-row { display: flex; justify-content: space-between; margin-bottom: 15px; }
+    .ticket-row:last-child { margin-bottom: 0; }
+    .ticket-label { font-size: 12px; color: #777; font-weight: 600; margin-bottom: 4px; }
+    .ticket-val { font-size: 15px; color: #111; font-weight: 700; }
+
     /* --- BOTTOM BAR --- */
     .bottom-bar { position: absolute; bottom: 0; width: 100%; background: #ffffff; padding: 20px; box-sizing: border-box; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); border-top-left-radius: 24px; border-top-right-radius: 24px; display: none; z-index: 10; }
     .btn-confirm { background-color: #2558d6; color: #ffffff; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; }
@@ -86,39 +95,29 @@
       </button>
     </div>
 
-    <!-- SCREEN 2: DOCTOR PROFILE (NEW) -->
+    <!-- SCREEN 2: DOCTOR PROFILE -->
     <div id="screen-profile" class="screen">
       <div class="profile-header-bg"></div>
       
       <div class="profile-card">
-        <!-- Generic Doctor Icon (Can replace src with actual photo later) -->
         <img src="https://kaminenihospitals.com/wp-content/uploads/2023/08/Dr.-M.-S.-N.-Pavan-Kumar.jpg" alt="Dr. M. S. N. Pavan Kumar" class="profile-img">
         <h2 class="doc-name">Dr. M. S. N. Pavan Kumar</h2>
         <p class="doc-title">Sr. Interventional Cardiologist MD, DM (NIMS).</p>
-        <p class="doc-desc">About: Dr. Pavan is a Senior Consulting Cardiologist at Kamineni Hospital Vijayawada, with 10+ years of experience. His talents and skills in this field were realised when he earned a Gold Medal as he pursued his MD and later went on to finish his DM in Cardiology. He is an Interventional Cardiologist and has good experience in Primary Angioplasty.
-Expertise: Field of Cardiology.
- </p>
+        <p class="doc-desc"><b>About:</b> Dr. Pavan is a Senior Consulting Cardiologist at Kamineni Hospital Vijayawada, with 10+ years of experience. His talents and skills in this field were realised when he earned a Gold Medal as he pursued his MD and later went on to finish his DM in Cardiology. He is an Interventional Cardiologist and has good experience in Primary Angioplasty.<br><br><b>Expertise:</b> Field of Cardiology.</p>
         
         <div class="action-row">
-          <!-- MAPS LINK (Will open Google Maps, Ola, or Uber options on mobile) -->
           <a href="https://maps.app.goo.gl/uvKAT7brveWbBdJZ8" target="_blank" class="action-item">
             <div class="action-icon">📍</div>
             <span class="action-label">Navigate</span>
           </a>
-          
-          <!-- CALL LINK -->
           <a href="tel:+917036270362" class="action-item">
             <div class="action-icon">📞</div>
             <span class="action-label">Call</span>
           </a>
-          
-          <!-- WHATSAPP MESSAGE LINK -->
-          <a href="https://wa.me/919876543210?text=Hello%20Dr.%20Pavan%20Clinic," target="_blank" class="action-item">
+          <a href="https://wa.me/917036270362?text=Hello%20Dr.%20Pavan%20Clinic," target="_blank" class="action-item">
             <div class="action-icon">💬</div>
             <span class="action-label">Message</span>
           </a>
-          
-          <!-- SHARE APP LINK -->
           <div class="action-item" onclick="shareApp()">
             <div class="action-icon">🔗</div>
             <span class="action-label">Share</span>
@@ -128,12 +127,12 @@ Expertise: Field of Cardiology.
 
       <div class="stats-row">
         <div class="stat">
-          <div class="stat-val">15+</div>
+          <div class="stat-val">10+</div>
           <div class="stat-label">Years Exp.</div>
         </div>
         <div class="stat">
-          <div class="stat-val">4.9⭐</div>
-          <div class="stat-label">Rating</div>
+          <div class="stat-val">Gold</div>
+          <div class="stat-label">Medalist</div>
         </div>
         <div class="stat">
           <div class="stat-val">1000+</div>
@@ -149,7 +148,7 @@ Expertise: Field of Cardiology.
       </div>
     </div>
 
-    <!-- SCREEN 3: Patient Details (Only shown if missing phone number) -->
+    <!-- SCREEN 3: Patient Details -->
     <div id="screen-details" class="screen padded-screen">
       <h2>Patient Details</h2>
       <p>We need your number to confirm the booking.</p>
@@ -169,14 +168,49 @@ Expertise: Field of Cardiology.
         <div class="month-selector" id="month-label">August ▾</div>
         <div class="date-strip" id="date-strip"></div>
       </div>
-
       <div class="slots-section" id="slots-container"></div>
-
       <div class="bottom-bar" id="bottom-bar">
         <button class="btn-confirm" id="btn-confirm" onclick="executeBooking()" disabled>Confirm Appointment</button>
       </div>
     </div>
-  </div>
+
+    <!-- SCREEN 5: Booking Success (NEW) -->
+    <div id="screen-success" class="screen padded-screen">
+      <div style="margin-top: 40px;">
+        <div class="success-icon">✅</div>
+        <h2 class="success-title">Booking Confirmed!</h2>
+        <p class="success-text">Your appointment has been successfully scheduled.</p>
+        
+        <div class="ticket-card">
+          <div class="ticket-row">
+            <div>
+              <div class="ticket-label">Doctor</div>
+              <div class="ticket-val">Dr. M. S. N. Pavan Kumar</div>
+            </div>
+          </div>
+          <div class="ticket-row">
+            <div>
+              <div class="ticket-label">Date</div>
+              <div class="ticket-val" id="success-date">--</div>
+            </div>
+            <div>
+              <div class="ticket-label">Time</div>
+              <div class="ticket-val" id="success-time">--</div>
+            </div>
+          </div>
+          <div class="ticket-row">
+            <div>
+              <div class="ticket-label">Patient Name</div>
+              <div class="ticket-val" id="success-name">--</div>
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn-primary" onclick="showScreen('screen-profile')">Back to Home</button>
+      </div>
+    </div>
+
+  </div> <!-- End Mobile Wrapper -->
 
   <script>
     const supabaseUrl = 'https://furgtyybhypajuujyaun.supabase.co';
@@ -203,7 +237,6 @@ Expertise: Field of Cardiology.
     function handleSession(session) {
       if (session) {
         currentUserId = session.user.id;
-        
         const meta = session.user.user_metadata;
         const dbName = meta.full_name;
         const dbPhone = meta.phone_number; 
@@ -214,7 +247,6 @@ Expertise: Field of Cardiology.
         document.getElementById('patient-name').value = currentName;
         document.getElementById('patient-phone').value = currentPhone;
 
-        // ALWAYS show the beautiful profile page first after login!
         showScreen('screen-profile');
       } else {
         currentUserId = null;
@@ -237,7 +269,6 @@ Expertise: Field of Cardiology.
       currentName = ''; currentPhone = ''; currentUserId = null;
     }
 
-    // Handles the "Book Appointment" button on the profile page
     function proceedToBooking() {
       if (currentName && currentPhone) {
         showScreen('screen-booking');
@@ -248,7 +279,6 @@ Expertise: Field of Cardiology.
       }
     }
 
-    // Native Web Share API
     function shareApp() {
       if (navigator.share) {
         navigator.share({
@@ -410,11 +440,29 @@ Expertise: Field of Cardiology.
       confirmBtn.innerText = "Booking...";
       confirmBtn.disabled = true;
 
+      // Find the booked time string before modifying the database
+      const slotElement = cachedSlots.find(s => s.id === selectedSlotIdToBook);
+      const bookedTime = slotElement ? slotElement.time_slot : '';
+
       const { error } = await supabaseClient.from('appointments').update({ status: 'booked', patient_name: currentName, phone: currentPhone, user_id: currentUserId }).eq('id', selectedSlotIdToBook);
       
       if(!error) {
+        // Format the date nicely for the ticket (e.g. "Sep 8, 2026")
+        const [yyyy, mm, dd] = selectedDate.split('-');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const niceDate = `${months[parseInt(mm)-1]} ${parseInt(dd)}, ${yyyy}`;
+        
+        // Populate the Success Screen
+        document.getElementById('success-date').innerText = niceDate;
+        document.getElementById('success-time').innerText = bookedTime;
+        document.getElementById('success-name').innerText = currentName;
+
         selectedSlotIdToBook = null; 
-        alert('Booking Successful!');
+        
+        // Show Success Screen instead of popup alert
+        showScreen('screen-success');
+        
+        // Reload slots quietly in the background
         loadSlots(); 
       } else {
         alert('Error: ' + error.message);
